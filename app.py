@@ -39,6 +39,89 @@ st.set_page_config(
     layout="wide"
 )
 
+def extract_activity_data(analysis_text):
+    """Extract activity, location, and mood from Pegasus analysis"""
+    
+    # Initialize defaults
+    activity = "general"
+    location = "unknown"
+    mood = "casual"
+    
+    analysis_lower = analysis_text.lower()
+    
+    # Extract activity
+    if "exercising" in analysis_lower or "gym" in analysis_lower or "working out" in analysis_lower:
+        activity = "fitness"
+    elif "dancing" in analysis_lower:
+        activity = "dancing"
+    elif "cooking" in analysis_lower or "pouring" in analysis_lower:
+        activity = "cooking"
+    elif "drinking" in analysis_lower:
+        activity = "drinking"
+    elif "posing" in analysis_lower or "promotional" in analysis_lower:
+        activity = "posing"
+        
+    # Extract location
+    if "gym" in analysis_lower:
+        location = "gym"
+    elif "kitchen" in analysis_lower:
+        location = "kitchen"
+    elif "living room" in analysis_lower or "home" in analysis_lower:
+        location = "home"
+    elif "outdoor" in analysis_lower or "forest" in analysis_lower:
+        location = "outdoors"
+    elif "studio" in analysis_lower:
+        location = "studio"
+    elif "bedroom" in analysis_lower:
+        location = "bedroom"
+    elif "warehouse" in analysis_lower:
+        location = "warehouse"
+        
+    # Extract mood
+    if "funny" in analysis_lower or "comedy" in analysis_lower or "light-hearted" in analysis_lower:
+        mood = "funny"
+    elif "energetic" in analysis_lower or "playful" in analysis_lower:
+        mood = "energetic"
+    elif "artistic" in analysis_lower or "creative" in analysis_lower:
+        mood = "artistic"
+    elif "chill" in analysis_lower or "relaxed" in analysis_lower:
+        mood = "chill"
+    elif "promotional" in analysis_lower:
+        mood = "promotional"
+        
+    return activity, location, mood
+
+def assign_activity_mob(activity, location, mood):
+    """Assign to activity-based mob"""
+    
+    # Fitness focused
+    if activity == "fitness" or location == "gym":
+        return "Gym Warriors 💪", "Post-workout milk crew"
+    
+    # Comedy focused
+    elif mood == "funny":
+        return "Comedy Kings 😂", "Hilarious milk moments"
+    
+    # Creative/Artistic
+    elif mood == "artistic" or location == "studio" or activity == "dancing":
+        return "Creative Collective 🎨", "Artistic milk expression"
+    
+    # Outdoor adventures
+    elif location == "outdoors":
+        return "Adventure Squad 🏞️", "Milk in the wild"
+    
+    # Home/Casual
+    elif location in ["home", "bedroom", "living room", "kitchen"] and mood == "chill":
+        return "Home Chillers 🏠", "Cozy milk vibes"
+    
+    # Kitchen specific
+    elif location == "kitchen" and activity == "cooking":
+        return "Kitchen Creators 👨‍🍳", "Culinary milk masters"
+    
+    # Default
+    else:
+        return "Milk Enthusiasts 🥛", "General milk lovers"
+
 # Initialize Twelve Labs client
 @st.cache_resource
 def init_twelve_labs():
@@ -143,7 +226,9 @@ def main():
         pages = {
             "🏠 Home": "Home",
             "⚙️ Setup Index": "Setup",
+            "📱 Instagram Feed": "Instagram",  # NEW!
             "🎬 Upload Video": "Upload",
+            "🌟 Mob Explorer": "Mobs",        # NEW!
             "📊 Dashboard": "Dashboard"
         }
         
@@ -166,6 +251,10 @@ def main():
         show_upload_page(client)
     elif st.session_state.current_page == "Dashboard":
         show_dashboard_page()
+    elif st.session_state.current_page == "Instagram":
+        show_instagram_simulator()
+    elif st.session_state.current_page == "Mobs":
+        show_mob_explorer()
 
 def check_usage(client):
     """Check Twelve Labs usage"""
@@ -612,16 +701,20 @@ def process_video(client, video_file, filename=None):
         try:
             logger.info("Attempting Pegasus AI analysis")
             
+            # ENHANCED PROMPT - just copy paste this over your existing prompt
             analysis_result = client.analyze(
                 video_id=video_id,
                 prompt="""Analyze this video and answer:
                 1. Is there any milk visible in this video? (yes/no)
-                2. Can you see any milk containers, bottles, or cartons?
-                3. Do you hear anyone saying "got milk" or mentioning milk?
-                4. Are there any milk labels or text visible?
-                5. What type of milk is it? (chocolate, strawberry, regular, none)
+                2. What type of milk is it? (chocolate, strawberry, regular, none)
+                3. What is the person doing? (drinking, pouring, cooking, exercising, dancing, studying, etc.)
+                4. Where are they? (kitchen, gym, bedroom, outdoors, classroom, etc.)
+                5. What's the mood/style? (funny, serious, energetic, chill, artistic)
+                6. How many people are in the video? (solo, duo, group)
+                7. What time of day does it appear to be? (morning, afternoon, evening, night)
+                8. Any unique activities or props? (skateboard, gaming, music, etc.)
                 
-                Provide a confidence score from 0-100 for milk presence.""",
+                Provide answers in a clear format.""",
                 temperature=0.2
             )
             
@@ -636,7 +729,14 @@ def process_video(client, video_file, filename=None):
                 analysis_text = str(analysis_result).lower()
             
             logger.info(f"Pegasus result: {analysis_text[:200]}...")
-            
+            # Extract activity data from the analysis
+            activity, location, mood = extract_activity_data(analysis_text)
+            logger.info(f"Detected - Activity: {activity}, Location: {location}, Mood: {mood}")
+
+            # Assign activity-based mob
+            activity_mob, mob_description = assign_activity_mob(activity, location, mood)
+            logger.info(f"Assigned to mob: {activity_mob}")
+                        
             # Display AI analysis
             with st.expander("🤖 AI Analysis Result"):
                 st.write(analysis_text)
@@ -729,6 +829,19 @@ def process_video(client, video_file, filename=None):
             
             st.success("✅ Milk Content Validated!")
             st.balloons()
+
+            # NEW: Display AI Scene Analysis
+            st.markdown("### 🤖 AI Scene Analysis")
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric("Activity", activity.title())
+                
+            with col2:
+                st.metric("Location", location.title())
+                
+            with col3:
+                st.metric("Mood", mood.title())
             
             # Display metrics
             col1, col2, col3 = st.columns(3)
@@ -741,25 +854,25 @@ def process_video(client, video_file, filename=None):
             
             # ===== STEP 11: MOB ASSIGNMENT =====
             st.markdown("### 🎯 Mob Assignment")
-            
-            # TODO: Implement actual mob assignment logic
-            # For now, simulate mob assignment based on type and metadata
-            if metadata:
-                username = metadata.get('username', 'unknown')
-                
-                if detected_type == "Chocolate":
-                    mob_name = "Chocolate Champions 🍫"
-                    mob_description = "The bold ones who embrace the cocoa"
-                elif detected_type == "Strawberry":
-                    mob_name = "Berry Squad 🍓"
-                    mob_description = "Sweet souls with pink milk dreams"
-                else:
-                    mob_name = "Classic Crew 🥛"
-                    mob_description = "Keeping it real with regular milk"
-                
-                st.info(f"**Assigned to:** {mob_name}")
+
+            # Show BOTH mob types
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.info(f"**Activity Mob:** {activity_mob}")
                 st.caption(mob_description)
-                st.caption(f"Welcome to the mob, {username}!")
+                
+            with col2:
+                # Original milk-based mob
+                if detected_type == "Chocolate":
+                    milk_mob = "Chocolate Champions 🍫"
+                elif detected_type == "Strawberry":
+                    milk_mob = "Berry Squad 🍓"
+                else:
+                    milk_mob = "Classic Crew 🥛"
+                
+                st.info(f"**Milk Type:** {milk_mob}")
+                st.caption(f"The {detected_type.lower()} milk lovers")
             
             # Save to session state
             st.session_state.processed_videos.append({
@@ -767,6 +880,12 @@ def process_video(client, video_file, filename=None):
                 "filename": filename,
                 "confidence": confidence,
                 "milk_type": detected_type,
+                "activity_mob": activity_mob,  # NEW!
+                "activity_data": {              # NEW!
+                    "activity": activity,
+                    "location": location,
+                    "mood": mood
+                },
                 "detection_methods": detection_methods,
                 "metadata": metadata,
                 "mob": mob_name if metadata else "Unassigned",
@@ -820,7 +939,7 @@ def show_dashboard_page():
     
     with col2:
         avg_confidence = sum(v['confidence'] for v in st.session_state.processed_videos) / len(st.session_state.processed_videos)
-        st.metric("Avg Confidence", f"{avg_confidence:.1%}")
+        st.metric("Avg Confidence", f"{avg_confidence:.1f}%")  # Changed from .1% to .1f%
     
     with col3:
         # Count milk types
@@ -890,6 +1009,270 @@ def show_dashboard_page():
             file_name=f"got_milk_results_{int(time.time())}.csv",
             mime="text/csv"
         )
+def show_instagram_simulator():
+    """Simulate real-time Instagram uploads arriving at the platform"""
+    st.title("📱 Instagram Live Feed Simulator")
+    st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
+    
+    # Get all videos with metadata that haven't been processed yet
+    processed_ids = [v['filename'] for v in st.session_state.processed_videos]
+    
+    # Find unprocessed campaign videos
+    available_videos = []
+    for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4"]:
+        for video_path in glob.glob(pattern):
+            if os.path.basename(video_path) not in processed_ids:
+                # Check if has metadata
+                metadata_path = video_path.replace('.mp4', '_metadata.json')
+                if os.path.exists(metadata_path):
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+                    if metadata.get('has_campaign_hashtags', False):
+                        available_videos.append({
+                            'path': video_path,
+                            'metadata': metadata,
+                            'filename': os.path.basename(video_path)
+                        })
+    
+    if not available_videos:
+        st.info("🎉 All campaign videos have been processed! Check the Mob Explorer.")
+        if st.button("🔄 Reset Demo"):
+            st.session_state.processed_videos = []
+            st.rerun()
+        return
+    
+    # Simulate incoming posts
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # Create Instagram-style post card
+        next_video = available_videos[0]
+        metadata = next_video['metadata']
+        
+        # Instagram post UI
+        st.markdown("""
+        <style>
+        .instagram-post {
+            border: 1px solid #dbdbdb;
+            border-radius: 8px;
+            background: white;
+            padding: 16px;
+            margin: 10px 0;
+        }
+        .ig-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .ig-username {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .ig-location {
+            font-size: 12px;
+            color: #8e8e8e;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Post header
+        st.markdown(f"**{metadata['username']}** • {metadata['location']}")
+        st.caption(f"{metadata['full_name']} • {metadata['creative_style']}")
+        
+        # Video preview
+        st.video(next_video['path'])
+        
+        # Engagement metrics
+        col_likes, col_views, col_engagement = st.columns(3)
+        with col_likes:
+            st.metric("❤️ Likes", f"{metadata['likes']:,}")
+        with col_views:
+            st.metric("👁️ Views", f"{metadata['views']:,}")
+        with col_engagement:
+            st.metric("📈 Engagement", f"{metadata['engagement_rate']}%")
+        
+        # Caption and hashtags
+        st.markdown("**Caption:**")
+        st.write(metadata['caption'])
+        
+        # Highlight campaign hashtags
+        hashtags_html = []
+        for tag in metadata['hashtags']:
+            if tag in ['#gotmilk', '#milkmob']:
+                hashtags_html.append(f"<span style='color: #00a651; font-weight: bold;'>{tag}</span>")
+            else:
+                hashtags_html.append(f"<span style='color: #1890ff;'>{tag}</span>")
+        st.markdown(" ".join(hashtags_html), unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Alert style notification
+        st.info("🔔 **New #GotMilk post detected!**")
+        
+        # Process button
+        if st.button("✅ Validate & Add to Campaign", type="primary", use_container_width=True):
+            with st.spinner("🤖 AI validating milk content..."):
+                # Process the video
+                client = init_twelve_labs()
+                with open(next_video['path'], 'rb') as f:
+                    process_video(client, f, filename=next_video['filename'])
+            
+            st.balloons()
+            st.success("✅ Added to campaign!")
+            time.sleep(2)
+            st.rerun()
+    
+    # Show queue
+    with st.sidebar:
+        st.markdown("### 📥 Incoming Queue")
+        st.metric("Posts Waiting", len(available_videos))
+        
+        if len(available_videos) > 1:
+            st.markdown("**Next Up:**")
+            for i, video in enumerate(available_videos[1:4]):  # Show next 3
+                st.caption(f"{i+2}. {video['metadata']['username']}")
+        
+        st.markdown("---")
+        st.markdown("### ⚡ Live Stats")
+        st.metric("Processed Today", len(st.session_state.processed_videos))
+        st.metric("Success Rate", "100%")
+
+def show_mob_explorer():
+    """Show milk mob communities with rich creator information"""
+    st.title("🌟 Milk Mob Explorer")
+    
+    if not st.session_state.processed_videos:
+        st.info("No mobs created yet. Head to the Instagram Simulator to process videos!")
+        return
+    
+    # Tab selection for different views
+    tab1, tab2, tab3 = st.tabs(["🏆 Activity Mobs", "🥛 Milk Type Tribes", "📊 Creator Leaderboard"])
+    
+    with tab1:
+        show_activity_mobs()
+        
+    with tab2:
+        show_milk_type_mobs()
+        
+    with tab3:
+        show_creator_leaderboard()
+
+def show_activity_mobs():
+    """Show activity-based mobs with creator cards"""
+    st.markdown("### 🎯 Find Your Tribe by Activity")
+    
+    # Group by activity mobs
+    activity_mobs = {}
+    for video in st.session_state.processed_videos:
+        mob = video.get('activity_mob', 'Unknown')
+        if mob not in activity_mobs:
+            activity_mobs[mob] = []
+        activity_mobs[mob].append(video)
+    
+    # Sort by size
+    sorted_mobs = sorted(activity_mobs.items(), key=lambda x: len(x[1]), reverse=True)
+    
+    for mob_name, members in sorted_mobs:
+        with st.expander(f"{mob_name} ({len(members)} members)", expanded=True):
+            # Mob stats
+            col1, col2, col3 = st.columns(3)
+            
+            # Calculate total engagement
+            total_likes = sum(m.get('metadata', {}).get('likes', 0) for m in members)
+            total_views = sum(m.get('metadata', {}).get('views', 0) for m in members)
+            avg_engagement = sum(m.get('metadata', {}).get('engagement_rate', 0) for m in members) / len(members)
+            
+            with col1:
+                st.metric("Total Likes", f"{total_likes:,}")
+            with col2:
+                st.metric("Total Views", f"{total_views:,}")
+            with col3:
+                st.metric("Avg Engagement", f"{avg_engagement:.1f}%")
+            
+            st.markdown("#### 👥 Mob Members")
+            
+            # Display creator cards in grid
+            cols = st.columns(3)
+            for idx, member in enumerate(members):
+                with cols[idx % 3]:
+                    metadata = member.get('metadata', {})
+                    if metadata:
+                        # Creator card
+                        st.markdown(f"""
+                        <div style='border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin: 5px 0;'>
+                            <b>{metadata.get('username', 'Unknown')}</b><br>
+                            <small>{metadata.get('full_name', '')}</small><br>
+                            <small>📍 {metadata.get('location', '')}</small><br>
+                            <small>🎨 {metadata.get('creative_style', '')}</small><br>
+                            <small>❤️ {metadata.get('likes', 0):,} likes</small>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Milk type badge
+                        milk_type = member.get('milk_type', 'Unknown')
+                        if milk_type == "Chocolate":
+                            st.caption("🍫 Chocolate")
+                        elif milk_type == "Strawberry":
+                            st.caption("🍓 Strawberry")
+                        else:
+                            st.caption("🥛 Regular")
+
+def show_milk_type_mobs():
+    """Show traditional milk type groupings"""
+    st.markdown("### 🥛 Classic Milk Categories")
+    
+    # Group by milk type
+    milk_groups = {}
+    for video in st.session_state.processed_videos:
+        milk_type = video.get('milk_type', 'Unknown')
+        if milk_type not in milk_groups:
+            milk_groups[milk_type] = []
+        milk_groups[milk_type].append(video)
+    
+    cols = st.columns(3)
+    icons = {"Chocolate": "🍫", "Strawberry": "🍓", "2% Regular": "🥛", "Regular": "🥛"}
+    
+    for idx, (milk_type, videos) in enumerate(milk_groups.items()):
+        with cols[idx % 3]:
+            icon = icons.get(milk_type, "🥛")
+            st.markdown(f"### {icon} {milk_type}")
+            st.metric("Members", len(videos))
+            
+            # List top creators
+            st.markdown("**Top Creators:**")
+            for video in videos[:3]:
+                metadata = video.get('metadata', {})
+                if metadata:
+                    st.caption(f"• {metadata.get('username', 'Unknown')}")
+
+def show_creator_leaderboard():
+    """Show top creators by engagement"""
+    st.markdown("### 🏆 Top Campaign Creators")
+    
+    # Sort by engagement
+    creators_with_metadata = [v for v in st.session_state.processed_videos if v.get('metadata')]
+    sorted_creators = sorted(creators_with_metadata, 
+                           key=lambda x: x.get('metadata', {}).get('engagement_rate', 0), 
+                           reverse=True)
+    
+    for rank, video in enumerate(sorted_creators[:10], 1):
+        metadata = video.get('metadata', {})
+        col1, col2, col3, col4 = st.columns([0.5, 2, 1, 1])
+        
+        with col1:
+            st.markdown(f"**#{rank}**")
+        
+        with col2:
+            st.markdown(f"**{metadata.get('username', 'Unknown')}**")
+            st.caption(f"{metadata.get('creative_style', '')} • {metadata.get('location', '')}")
+        
+        with col3:
+            st.metric("Engagement", f"{metadata.get('engagement_rate', 0)}%")
+        
+        with col4:
+            st.metric("Mob", video.get('activity_mob', 'Unknown').split(' ')[0])        
 
 if __name__ == "__main__":
     logger.info("=" * 60)
