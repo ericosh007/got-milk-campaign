@@ -1,24 +1,52 @@
+# Videos and Data
 data/
+test_videos/
+test_videos_metadata/
+*.mp4
+*.mov
+*.avi
+*.mkv
 
-
-# This file tells Git what NOT to upload
-# VERY IMPORTANT - keeps your API key secret!
-
-# Environment variables (YOUR SECRET KEY!)
-.env
-
-# Virtual environment
-venv/
-env/
+# Logs
+logs/
+*.log
+got_milk_debug_*.log
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
 
-# Mac
+# Environment
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Test videos
-*.mp4
-*.mov
-test_videos/
+# Test outputs
+*.csv
+pre_filter_results_*.json
+campaign_videos_to_process_*.json
+
+# Temporary files
+*.tmp
+*.bak
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Package files
+*.egg-info/
+dist/
+build/
