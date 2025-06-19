@@ -1,1 +1,24 @@
 data/
+
+
+# This file tells Git what NOT to upload
+# VERY IMPORTANT - keeps your API key secret!
+
+# Environment variables (YOUR SECRET KEY!)
+.env
+
+# Virtual environment
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+
+# Mac
+.DS_Store
+
+# Test videos
+*.mp4
+*.mov
+test_videos/
