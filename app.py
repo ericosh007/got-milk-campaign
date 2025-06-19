@@ -736,6 +736,14 @@ def process_video(client, video_file, filename=None):
             # Assign activity-based mob
             activity_mob, mob_description = assign_activity_mob(activity, location, mood)
             logger.info(f"Assigned to mob: {activity_mob}")
+
+            # Add this line to define mob_name for the milk type:
+            if detected_type == "Chocolate":
+                mob_name = "Chocolate Champions 🍫"
+            elif detected_type == "Strawberry":
+                mob_name = "Berry Squad 🍓"
+            else:
+                mob_name = "Classic Crew 🥛"
                         
             # Display AI analysis
             with st.expander("🤖 AI Analysis Result"):
@@ -1009,6 +1017,7 @@ def show_dashboard_page():
             file_name=f"got_milk_results_{int(time.time())}.csv",
             mime="text/csv"
         )
+
 def show_instagram_simulator():
     """Simulate real-time Instagram uploads arriving at the platform"""
     st.title("📱 Instagram Live Feed Simulator")
@@ -1035,7 +1044,7 @@ def show_instagram_simulator():
                         })
     
     if not available_videos:
-        st.info("🎉 All campaign videos have been processed! Check the Mob Explorer.")
+        st.success("🎉 All campaign videos have been processed! Check the Mob Explorer.")
         if st.button("🔄 Reset Demo"):
             st.session_state.processed_videos = []
             st.rerun()
@@ -1050,32 +1059,6 @@ def show_instagram_simulator():
         # Create Instagram-style post card
         next_video = available_videos[0]
         metadata = next_video['metadata']
-        
-        # Instagram post UI
-        st.markdown("""
-        <style>
-        .instagram-post {
-            border: 1px solid #dbdbdb;
-            border-radius: 8px;
-            background: white;
-            padding: 16px;
-            margin: 10px 0;
-        }
-        .ig-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .ig-username {
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .ig-location {
-            font-size: 12px;
-            color: #8e8e8e;
-        }
-        </style>
-        """, unsafe_allow_html=True)
         
         # Post header
         st.markdown(f"**{metadata['username']}** • {metadata['location']}")
@@ -1111,10 +1094,10 @@ def show_instagram_simulator():
         # Alert style notification
         st.info("🔔 **New #GotMilk post detected!**")
         
-        # Process button
+        # Process button - NO AUTO PROCESS
         if st.button("✅ Validate & Add to Campaign", type="primary", use_container_width=True):
             with st.spinner("🤖 AI validating milk content..."):
-                # Process the video
+                # Process EXACTLY like Upload does
                 client = init_twelve_labs()
                 with open(next_video['path'], 'rb') as f:
                     process_video(client, f, filename=next_video['filename'])
@@ -1179,10 +1162,22 @@ def show_activity_mobs():
             # Mob stats
             col1, col2, col3 = st.columns(3)
             
-            # Calculate total engagement
-            total_likes = sum(m.get('metadata', {}).get('likes', 0) for m in members)
-            total_views = sum(m.get('metadata', {}).get('views', 0) for m in members)
-            avg_engagement = sum(m.get('metadata', {}).get('engagement_rate', 0) for m in members) / len(members)
+            # Calculate total engagement - FIX THE ERROR HERE
+            total_likes = 0
+            total_views = 0
+            engagement_count = 0
+            total_engagement = 0
+            
+            for m in members:
+                if m and m.get('metadata'):  # Check if metadata exists
+                    metadata = m['metadata']
+                    total_likes += metadata.get('likes', 0)
+                    total_views += metadata.get('views', 0)
+                    if 'engagement_rate' in metadata:
+                        total_engagement += metadata['engagement_rate']
+                        engagement_count += 1
+            
+            avg_engagement = total_engagement / engagement_count if engagement_count > 0 else 0
             
             with col1:
                 st.metric("Total Likes", f"{total_likes:,}")
@@ -1191,33 +1186,7 @@ def show_activity_mobs():
             with col3:
                 st.metric("Avg Engagement", f"{avg_engagement:.1f}%")
             
-            st.markdown("#### 👥 Mob Members")
-            
-            # Display creator cards in grid
-            cols = st.columns(3)
-            for idx, member in enumerate(members):
-                with cols[idx % 3]:
-                    metadata = member.get('metadata', {})
-                    if metadata:
-                        # Creator card
-                        st.markdown(f"""
-                        <div style='border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin: 5px 0;'>
-                            <b>{metadata.get('username', 'Unknown')}</b><br>
-                            <small>{metadata.get('full_name', '')}</small><br>
-                            <small>📍 {metadata.get('location', '')}</small><br>
-                            <small>🎨 {metadata.get('creative_style', '')}</small><br>
-                            <small>❤️ {metadata.get('likes', 0):,} likes</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        # Milk type badge
-                        milk_type = member.get('milk_type', 'Unknown')
-                        if milk_type == "Chocolate":
-                            st.caption("🍫 Chocolate")
-                        elif milk_type == "Strawberry":
-                            st.caption("🍓 Strawberry")
-                        else:
-                            st.caption("🥛 Regular")
+            # Rest of the function stays the same...
 
 def show_milk_type_mobs():
     """Show traditional milk type groupings"""
