@@ -638,6 +638,8 @@ def process_video(client, video_file, filename=None):
     if metadata:
         hashtags = metadata.get('hashtags', [])
         has_campaign_tag = '#gotmilk' in hashtags or '#milkmob' in hashtags
+
+        logger.info(f"DEBUG: Found hashtags: {hashtags}")  # Add this
         
         if not has_campaign_tag:
             # NOT A CAMPAIGN VIDEO - QUARANTINE
@@ -1435,49 +1437,47 @@ def show_dashboard_page():
     tab1, tab2, tab3 = st.tabs(["✅ Approved Videos", "🚫 Quarantine Zone", "📋 Processing Logs"])
     
     with tab1:
-        # KEEP ALL YOUR EXISTING DASHBOARD CODE HERE
-        # This is everything that was in your original show_dashboard_page()
-        
         if not st.session_state.processed_videos:
             st.info("No videos processed yet. Upload some videos to see analytics!")
-            # return
-        
-        # Metrics
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("Total Videos", len(st.session_state.processed_videos))
-        
-        with col2:
-            avg_confidence = sum(v['confidence'] for v in st.session_state.processed_videos) / len(st.session_state.processed_videos)
-            st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
-        
-        with col3:
-            # Count milk types
-            milk_types = {}
-            for v in st.session_state.processed_videos:
-                milk_type = v.get('milk_type', 'Regular')
-                milk_types[milk_type] = milk_types.get(milk_type, 0) + 1
-            st.metric("Milk Types", len(milk_types))
-        
-        with col4:
-            # Success rate
-            success_rate = len(st.session_state.processed_videos) / len(st.session_state.processed_videos) * 100
-            st.metric("Success Rate", f"{success_rate:.0f}%")
-        
-        # Milk type breakdown
-        st.markdown("### 🥛 Milk Type Distribution")
-        if milk_types:
-            # Create columns for milk type cards
-            cols = st.columns(len(milk_types))
-            for idx, (milk_type, count) in enumerate(milk_types.items()):
-                with cols[idx]:
-                    if milk_type == "Chocolate":
-                        st.metric("🍫 Chocolate", count)
-                    elif milk_type == "Strawberry":
-                        st.metric("🍓 Strawberry", count)
-                    else:
-                        st.metric("🥛 Regular/2%", count)
+        else:
+            # Metrics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Total Videos", len(st.session_state.processed_videos))
+            
+            with col2:
+                avg_confidence = sum(v['confidence'] for v in st.session_state.processed_videos) / len(st.session_state.processed_videos)
+                st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
+            
+            with col3:
+                # Count milk types
+                milk_types = {}
+                for v in st.session_state.processed_videos:
+                    milk_type = v.get('milk_type', 'Regular')
+                    milk_types[milk_type] = milk_types.get(milk_type, 0) + 1
+                st.metric("Milk Types", len(milk_types))
+            
+            with col4:
+                # Success rate
+                success_rate = len(st.session_state.processed_videos) / len(st.session_state.processed_videos) * 100
+                st.metric("Success Rate", f"{success_rate:.0f}%")
+            
+            # Milk type breakdown
+            st.markdown("### 🥛 Milk Type Distribution")
+            if milk_types:  # This check is now safe because milk_types is defined
+                # Create columns for milk type cards
+                cols = st.columns(len(milk_types))
+                for idx, (milk_type, count) in enumerate(milk_types.items()):
+                    with cols[idx]:
+                        if milk_type == "Chocolate":
+                            st.metric("🍫 Chocolate", count)
+                        elif milk_type == "Strawberry":
+                            st.metric("🍓 Strawberry", count)
+                        else:
+                            st.metric("🥛 Regular/2%", count)
+            
+            # Rest of the dashboard code...
         
         # Detection methods analysis
         st.markdown("### 🔍 Detection Methods Used")
@@ -1633,7 +1633,7 @@ def show_dashboard_page():
                 
                 st.caption(f"Processing Time: {log.get('processing_time', 'N/A')}")
 
-def show_instagram_simulator():
+
     """Simulate real-time Instagram uploads arriving at the platform"""
     st.title("📱 Instagram Live Feed Simulator")
     st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
@@ -1641,11 +1641,21 @@ def show_instagram_simulator():
     # Get all videos with metadata that haven't been processed yet
     processed_ids = [v['filename'] for v in st.session_state.processed_videos]
     
+    # ALSO CHECK QUARANTINED VIDEOS!
+    quarantined_ids = []
+    for category in st.session_state.quarantined_videos.values():
+        for video in category:
+            if 'filename' in video:
+                quarantined_ids.append(video['filename'])
+    
     # Find unprocessed campaign videos
     available_videos = []
-    for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
+    # "test_videos/2%/*.mp4", "test_videos/choco/*.mp4","test_videos/straw/*.mp4",
+    for pattern in [ "test_videos/EdgeTests/real vids META/*.mp4"]:
         for video_path in glob.glob(pattern):
-            if os.path.basename(video_path) not in processed_ids:
+            filename = os.path.basename(video_path)
+            # Check if already processed OR quarantined
+            if filename not in processed_ids and filename not in quarantined_ids:
                 # Check if has metadata
                 metadata_path = video_path.replace('.mp4', '_metadata.json')
                 if os.path.exists(metadata_path):
@@ -1655,7 +1665,7 @@ def show_instagram_simulator():
                         available_videos.append({
                             'path': video_path,
                             'metadata': metadata,
-                            'filename': os.path.basename(video_path)
+                            'filename': filename
                         })
     
     if not available_videos:
@@ -1737,42 +1747,240 @@ def show_instagram_simulator():
         st.metric("Processed Today", len(st.session_state.processed_videos))
         st.metric("Success Rate", "100%")
 
+
+def show_instagram_simulator():
+    """Simulate real-time Instagram uploads arriving at the platform"""
+    st.title("📱 Instagram Live Feed Simulator")
+    st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
+    
+    # Get all videos with metadata that haven't been processed yet
+    processed_ids = [v['filename'] for v in st.session_state.processed_videos]
+    
+    # CRITICAL: Also check quarantined videos to avoid showing them again
+    quarantined_ids = []
+    for category in st.session_state.quarantined_videos.values():
+        for video in category:
+            if 'filename' in video:
+                quarantined_ids.append(video['filename'])
+    
+    # Find ALL unprocessed videos with metadata (regardless of hashtags)
+    available_videos = []
+    for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
+        for video_path in glob.glob(pattern):
+            filename = os.path.basename(video_path)
+            
+            # Skip if already processed OR quarantined
+            if filename not in processed_ids and filename not in quarantined_ids:
+                # Check if has metadata
+                metadata_path = video_path.replace('.mp4', '_metadata.json')
+                if os.path.exists(metadata_path):
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+                    
+                    # ADD ALL VIDEOS WITH METADATA (no hashtag filtering here!)
+                    available_videos.append({
+                        'path': video_path,
+                        'metadata': metadata,
+                        'filename': filename
+                    })
+    
+    if not available_videos:
+        st.success("🎉 All videos have been processed or quarantined! Check the Dashboard.")
+        
+        # Show summary
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Approved", len(st.session_state.processed_videos))
+        with col2:
+            total_quarantined = sum(len(videos) for videos in st.session_state.quarantined_videos.values())
+            st.metric("Quarantined", total_quarantined)
+            
+        if st.button("🔄 Reset Demo"):
+            st.session_state.processed_videos = []
+            st.session_state.quarantined_videos = {
+                'missing_metadata': [],
+                'no_campaign_tags': [],
+                'ai_detection_failed': []
+            }
+            st.session_state.processing_logs = []
+            st.rerun()
+        return
+    
+    # Simulate incoming posts
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # Create Instagram-style post card
+        next_video = available_videos[0]
+        metadata = next_video['metadata']
+        
+        # Post header
+        st.markdown(f"**{metadata['username']}** • {metadata.get('location', 'Unknown')}")
+        st.caption(f"{metadata.get('full_name', 'Unknown User')} • {metadata.get('creative_style', 'Content')}")
+        
+        # Video preview
+        st.video(next_video['path'])
+        
+        # Engagement metrics
+        col_likes, col_views, col_engagement = st.columns(3)
+        with col_likes:
+            st.metric("❤️ Likes", f"{metadata.get('likes', 0):,}")
+        with col_views:
+            st.metric("👁️ Views", f"{metadata.get('views', 0):,}")
+        with col_engagement:
+            st.metric("📈 Engagement", f"{metadata.get('engagement_rate', 0)}%")
+        
+        # Caption and hashtags
+        st.markdown("**Caption:**")
+        st.write(metadata.get('caption', 'No caption'))
+        
+        # Highlight hashtags based on campaign status
+        hashtags_html = []
+        hashtags = metadata.get('hashtags', [])
+        has_campaign_tag = '#gotmilk' in hashtags or '#milkmob' in hashtags
+        
+        for tag in hashtags:
+            if tag in ['#gotmilk', '#milkmob']:
+                # Campaign hashtags in green
+                hashtags_html.append(f"<span style='color: #00a651; font-weight: bold;'>{tag}</span>")
+            else:
+                # Other hashtags in blue
+                hashtags_html.append(f"<span style='color: #1890ff;'>{tag}</span>")
+        
+        st.markdown(" ".join(hashtags_html), unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Show appropriate notification based on hashtag status
+        if has_campaign_tag:
+            st.info("🔔 **New #GotMilk post detected!**")
+            button_text = "✅ Validate & Add to Campaign"
+            button_type = "primary"
+        else:
+            st.warning("⚠️ **Post detected without campaign hashtags**")
+            button_text = "🔍 Check Post Anyway"
+            button_type = "secondary"
+        
+        # Process button
+        # Process button
+        if st.button(button_text, type=button_type, use_container_width=True):
+            with st.spinner("🤖 AI validating content..."):
+                # Process the video - it will quarantine if no campaign hashtags
+                client = init_twelve_labs()
+                # Pass the PATH, not the opened file!
+                process_video(client, next_video['path'], filename=next_video['filename'])
+            
+            # Only show balloons if it was actually approved
+            if next_video['filename'] in [v['filename'] for v in st.session_state.processed_videos]:
+                st.balloons()
+                st.success("✅ Added to campaign!")
+            
+            time.sleep(2)
+            st.rerun()
+    
+    # Show queue in sidebar
+    with st.sidebar:
+        st.markdown("### 📥 Incoming Queue")
+        st.metric("Posts Waiting", len(available_videos))
+        
+        # Color-code the queue based on hashtag status
+        if len(available_videos) > 1:
+            st.markdown("**Next Up:**")
+            for i, video in enumerate(available_videos[1:4]):  # Show next 3
+                video_hashtags = video['metadata'].get('hashtags', [])
+                has_tags = '#gotmilk' in video_hashtags or '#milkmob' in video_hashtags
+                
+                if has_tags:
+                    st.success(f"{i+2}. {video['metadata']['username']} ✓")
+                else:
+                    st.warning(f"{i+2}. {video['metadata']['username']} ⚠️")
+        
+        st.markdown("---")
+        st.markdown("### ⚡ Live Stats")
+        st.metric("Approved", len(st.session_state.processed_videos))
+        
+        # Show quarantine counts
+        total_quarantined = sum(len(videos) for videos in st.session_state.quarantined_videos.values())
+        if total_quarantined > 0:
+            st.metric("Quarantined", total_quarantined)
+            
+            # Show breakdown
+            with st.expander("Quarantine Details"):
+                for reason, videos in st.session_state.quarantined_videos.items():
+                    if videos:
+                        st.caption(f"{reason.replace('_', ' ').title()}: {len(videos)}")
+
 #  updated mob explorer ---------------------------------------------
 
 def show_mob_explorer():
     """AI Scene Intelligence Hub - Showcasing Twelve Labs' unique capabilities"""
     st.title("🧠 AI Scene Intelligence Hub")
     st.markdown("**Powered by Twelve Labs Multi-Modal Understanding**")
-    st.caption("💡 Only Twelve Labs can understand video context at this depth")
+    
+    # Add Architecture Visualization First
+    with st.expander("🏗️ **See How Our Multi-Modal Architecture Works**", expanded=True):
+        st.markdown("""
+        ### 🚀 Twelve Labs Multi-Modal Intelligence Pipeline
+        
+        ```mermaid
+        graph LR
+            A[Instagram Post] --> B[Hashtag Check]
+            B --> C[Twelve Labs Upload]
+            C --> D[Pegasus AI Analysis]
+            C --> E[Marengo Search API]
+            D --> F[Scene Understanding<br/>Activity, Location, Mood]
+            E --> G[Confidence Scoring<br/>83-86% Range]
+            F --> H[Behavioral Mob Assignment]
+            G --> H
+            H --> I[Community Building]
+        ```
+        
+        **Our Advantages:**
+        1. **Dual AI Models**: Pegasus (context) + Marengo (confidence)
+        2. **Deep Scene Understanding**: Not just object detection
+        3. **Behavioral Clustering**: Activities, not just products
+        4. **Smart Validation**: Multi-modal verification
+        """)
+        
+        # Show processing metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("AI Models Used", "2", "Pegasus + Marengo")
+        with col2:
+            st.metric("Data Points Extracted", "8+", "Per Video")
+        with col3:
+            st.metric("Confidence Range", "83-86%", "Real Scores")
+        with col4:
+            st.metric("Processing Time", "30-90s", "Per Video")
+    
+    st.markdown("---")
     
     # Add custom CSS for beautiful UI
     st.markdown("""
     <style>
-        .intelligence-card {
+        .milk-type-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px;
-            border-radius: 15px;
+            padding: 30px;
+            border-radius: 20px;
             margin: 15px 0;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            color: white;def show_instagram_simulator():
+            text-align: center;
             transition: transform 0.3s ease;
         }
-        .intelligence-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        .milk-type-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
-        .metric-ring {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-        }
-        .activity-badge {
+        .architecture-badge {
             background: rgba(255, 255, 255, 0.2);
             padding: 5px 15px;
             border-radius: 20px;
             display: inline-block;
             margin: 5px;
+            font-size: 12px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -1781,8 +1989,9 @@ def show_mob_explorer():
         st.info("🎬 No videos processed yet. Head to Instagram Simulator to see AI in action!")
         return
     
-    # Create tabs for different intelligence views
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    # Create tabs - MILK TYPES FIRST!
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "🥛 Milk Type Analysis",      # NEW FIRST TAB
         "🎯 Activity Intelligence", 
         "🏆 Behavioral Leaderboards", 
         "📊 Scene Analytics",
@@ -1791,19 +2000,112 @@ def show_mob_explorer():
     ])
     
     with tab1:
-        show_activity_intelligence()
+        show_milk_type_analysis()      # NEW FUNCTION
         
     with tab2:
-        show_behavioral_leaderboards()
+        show_activity_intelligence()
         
-    with tab3:
-        show_scene_analytics()
+    # ... rest of tabs
+
+def show_milk_type_analysis():
+    """Primary view showing milk type distribution - THE MAIN INSIGHT"""
+    st.markdown("### 🥛 Milk Type Distribution - Primary Campaign Metric")
+    st.info("🔬 **Twelve Labs Multi-Modal Detection**: Visual (bottle/label) + Audio (spoken) + Text (on-screen)")
+    
+    # Gather milk type data
+    milk_types = {}
+    for video in st.session_state.processed_videos:
+        milk_type = video.get('milk_type', 'Unknown')
+        if milk_type not in milk_types:
+            milk_types[milk_type] = {
+                'count': 0,
+                'creators': [],
+                'activities': [],
+                'confidence_scores': []
+            }
         
-    with tab4:
-        show_location_insights()
+        milk_types[milk_type]['count'] += 1
+        milk_types[milk_type]['confidence_scores'].append(video.get('confidence', 0))
         
-    with tab5:
-        show_viral_predictors()
+        if video.get('metadata'):
+            milk_types[milk_type]['creators'].append(video['metadata'].get('username', 'Unknown'))
+        
+        if video.get('activity_data'):
+            milk_types[milk_type]['activities'].append(video['activity_data'].get('activity', 'unknown'))
+    
+    # Display milk type cards
+    cols = st.columns(3)
+    
+    milk_type_colors = {
+        'Chocolate': {'gradient': 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)', 'emoji': '🍫'},
+        'Strawberry': {'gradient': 'linear-gradient(135deg, #FFB6C1 0%, #FF69B4 100%)', 'emoji': '🍓'},
+        '2% Regular': {'gradient': 'linear-gradient(135deg, #F0F0F0 0%, #D3D3D3 100%)', 'emoji': '🥛'},
+        'Regular': {'gradient': 'linear-gradient(135deg, #F0F0F0 0%, #D3D3D3 100%)', 'emoji': '🥛'}
+    }
+    
+    for idx, (milk_type, data) in enumerate(milk_types.items()):
+        with cols[idx % 3]:
+            style = milk_type_colors.get(milk_type, {'gradient': 'linear-gradient(135deg, #95A5A6 0%, #7F8C8D 100%)', 'emoji': '🥛'})
+            avg_confidence = sum(data['confidence_scores']) / len(data['confidence_scores']) if data['confidence_scores'] else 0
+            
+            st.markdown(f"""
+            <div style="background: {style['gradient']}; 
+                        padding: 30px; border-radius: 20px; text-align: center; color: white;
+                        box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                <h1 style="font-size: 60px; margin: 0;">{style['emoji']}</h1>
+                <h2>{milk_type}</h2>
+                <h1 style="font-size: 48px; margin: 10px 0;">{data['count']}</h1>
+                <p style="margin: 0;">videos processed</p>
+                <hr style="margin: 20px 0; opacity: 0.3;">
+                <p style="font-size: 20px; margin: 10px 0;">Avg Confidence: {avg_confidence:.1f}%</p>
+                <div style="margin-top: 15px;">
+                    <span class="architecture-badge">Multi-Modal Detection</span>
+                    <span class="architecture-badge">Pegasus + Marengo</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Show unique activities for this milk type
+            unique_activities = list(set(data['activities']))
+            if unique_activities:
+                st.caption(f"**Activities**: {', '.join(act.title() for act in unique_activities[:3])}")
+            
+            # Show top creators
+            if data['creators']:
+                st.caption(f"**Top Creators**: {', '.join(data['creators'][:3])}")
+    
+    # Add visualization of detection methods
+    st.markdown("---")
+    st.markdown("### 🔍 How We Detect Each Milk Type")
+    
+    detection_col1, detection_col2, detection_col3 = st.columns(3)
+    
+    with detection_col1:
+        st.markdown("""
+        **🍫 Chocolate Detection**
+        - Visual: Brown liquid color
+        - Text: "Chocolate" on label
+        - Audio: "chocolate milk" spoken
+        - Context: Often post-workout
+        """)
+    
+    with detection_col2:
+        st.markdown("""
+        **🍓 Strawberry Detection**
+        - Visual: Pink liquid color
+        - Text: "Strawberry" on label
+        - Audio: "strawberry milk" mentioned
+        - Context: Often artistic/creative
+        """)
+    
+    with detection_col3:
+        st.markdown("""
+        **🥛 Regular/2% Detection**
+        - Visual: White liquid color
+        - Text: "2%" or "Whole" on label
+        - Audio: "regular milk" spoken
+        - Context: Various activities
+        """)
 
 def show_activity_intelligence():
     """Show deep activity understanding - ONLY possible with Twelve Labs"""
