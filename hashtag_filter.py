@@ -51,7 +51,7 @@ class HashtagFilter:
         logger.info(f"{'='*60}\n")
         
         # Find all video files
-        video_patterns = ["2%/*.mp4", "choco/*.mp4", "straw/*.mp4"]
+        video_patterns = ["2%/*.mp4", "choco/*.mp4", "straw/*.mp4", "EdgeTests/real vids META/*.mp4"]
         video_files = []
         
         for pattern in video_patterns:
