@@ -1783,6 +1783,10 @@ def show_instagram_simulator():
                         'metadata': metadata,
                         'filename': filename
                     })
+
+
+
+
     
     if not available_videos:
         st.success("🎉 All videos have been processed or quarantined! Check the Dashboard.")
@@ -2004,8 +2008,147 @@ def show_mob_explorer():
         
     with tab2:
         show_activity_intelligence()
+    with tab4:
+        show_directory_view()
         
     # ... rest of tabs
+
+# Add this as a new tab in your Mob Explorer page
+
+def show_directory_view():
+    """Display processed videos in a clean directory/finder style view"""
+    
+    st.markdown("### 📁 Processed Videos Directory")
+    
+    # Get processed videos
+    processed = st.session_state.get('processed_videos', [])
+    
+    if not processed:
+        st.info("No videos processed yet. Head to Instagram Feed to start processing!")
+        return
+    
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Videos", len(processed))
+    with col2:
+        avg_confidence = sum(v.get('confidence', 0) for v in processed) / len(processed)
+        st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
+    with col3:
+        milk_types = set(v.get('milk_type', 'Regular') for v in processed)
+        st.metric("Milk Types", len(milk_types))
+    with col4:
+        mobs = set(v.get('activity_mob', 'Unknown') for v in processed)
+        st.metric("Active Mobs", len(mobs))
+    
+    st.markdown("---")
+    
+    # Export buttons
+    export_col1, export_col2, export_col3 = st.columns([1, 1, 4])
+    with export_col1:
+        if st.button("📊 Export to CSV", use_container_width=True):
+            st.info("Export feature coming soon!")
+    with export_col2:
+        if st.button("📄 Export to JSON", use_container_width=True):
+            st.info("Export feature coming soon!")
+    
+    st.markdown("---")
+    
+    # Directory listing header
+    header_col1, header_col2 = st.columns([2, 3])
+    with header_col1:
+        st.markdown("**📹 Video File**")
+    with header_col2:
+        st.markdown("**📊 Metadata**")
+    
+    st.markdown("---")
+    
+    # Display each video in finder style
+    for video in processed:
+        col1, col2 = st.columns([2, 3])
+        
+        with col1:
+            # Video filename with icon based on milk type
+            milk_emoji = {
+                "Chocolate": "🍫",
+                "Strawberry": "🍓",
+                "Regular": "🥛",
+                "2%": "🥛"
+            }.get(video.get('milk_type', 'Regular'), "🥛")
+            
+            st.markdown(f"{milk_emoji} **{video['filename']}**")
+            st.caption(f"ID: {video.get('video_id', 'N/A')[:8]}...")
+        
+        with col2:
+            # Metadata in a clean format
+            metadata_items = []
+            
+            # Confidence with color
+            confidence = video.get('confidence', 0)
+            if confidence >= 85:
+                conf_color = "green"
+            elif confidence >= 80:
+                conf_color = "orange"
+            else:
+                conf_color = "red"
+            
+            metadata_items.append(f"<span style='color: {conf_color}'>Confidence: {confidence:.1f}%</span>")
+            
+            # Activity mob with emoji
+            mob = video.get('activity_mob', 'Unknown')
+            mob_emoji = {
+                "Gym Warriors": "💪",
+                "Creative Collective": "🎨",
+                "Comedy Kings": "😂",
+                "Home Chillers": "🏠",
+                "Kitchen Creators": "👨‍🍳"
+            }.get(mob, "❓")
+            metadata_items.append(f"Mob: {mob_emoji} {mob}")
+            
+            # Detection methods
+            methods = video.get('detection_methods', [])
+            if methods:
+                method_count = len(methods)
+                metadata_items.append(f"Detections: {method_count}")
+            
+            # Timestamp
+            if 'timestamp' in video:
+                import time
+                time_str = time.strftime('%I:%M %p', time.localtime(video['timestamp']))
+                metadata_items.append(f"Processed: {time_str}")
+            
+            # Display all metadata
+            st.markdown(" • ".join(metadata_items), unsafe_allow_html=True)
+        
+        # Subtle separator
+        st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+    
+    # Footer with bulk actions
+    st.markdown("---")
+    st.markdown("### 🎬 Bulk Actions")
+    
+    action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+    with action_col1:
+        if st.button("🏷️ Re-tag All", use_container_width=True):
+            st.info("Bulk re-tagging coming soon!")
+    with action_col2:
+        if st.button("🤖 Re-analyze All", use_container_width=True):
+            st.info("Bulk analysis coming soon!")
+    with action_col3:
+        if st.button("📤 Share Report", use_container_width=True):
+            st.info("Report sharing coming soon!")
+    with action_col4:
+        if st.button("🗑️ Clear All", use_container_width=True):
+            if st.button("⚠️ Confirm Clear"):
+                st.session_state.processed_videos = []
+                st.rerun()
+
+
+# In your mob explorer page, add this as a new tab:
+tab1, tab2, tab3, tab4 = st.tabs(["Activity Mobs", "Milk Type Tribes", "Creator Leaderboard", "Directory"])
+
+with tab4:
+    show_directory_view()
 
 def show_milk_type_analysis():
     """Primary view showing milk type distribution - THE MAIN INSIGHT"""
