@@ -978,6 +978,7 @@ def process_video(client, video_file, filename=None):
             log_entry = {
                 "timestamp": datetime.now().isoformat(),
                 "filename": filename,
+                "video_id": video_id,  # ← ADD THIS LINE
                 "status": "quarantined",
                 "reason": "ai_detection_failed",
                 "details": {
@@ -992,6 +993,14 @@ def process_video(client, video_file, filename=None):
             
             st.error("❌ Quarantined: No Milk Content Detected")
             st.warning(f"AI Analysis: {detected_content}")
+
+            logger.info(f"QUARANTINE DEBUG: Added {filename}")
+            logger.info(f"Session state quarantine count: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
+            logger.info(f"Quarantine contents: {[v['filename'] for v in st.session_state.quarantined_videos['ai_detection_failed']]}")
+
+            # ADD THIS DEBUG LINE:
+            logger.info(f"QUARANTINE DEBUG: Added {filename} to quarantine. Total in ai_detection_failed: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
+            st.write(f"DEBUG: Quarantine list now has {len(st.session_state.quarantined_videos['ai_detection_failed'])} videos")
             
             with st.expander("💭 Why was this quarantined?"):
                 st.write(f"**{detected_content}**")
@@ -1431,7 +1440,7 @@ def show_dashboard_page():
         
         if not st.session_state.processed_videos:
             st.info("No videos processed yet. Upload some videos to see analytics!")
-            return
+            # return
         
         # Metrics
         col1, col2, col3, col4 = st.columns(4)
