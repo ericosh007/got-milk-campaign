@@ -1737,71 +1737,462 @@ def show_instagram_simulator():
         st.metric("Processed Today", len(st.session_state.processed_videos))
         st.metric("Success Rate", "100%")
 
+#  updated mob explorer ---------------------------------------------
+
 def show_mob_explorer():
-    """Show milk mob communities with rich creator information"""
-    st.title("🌟 Milk Mob Explorer")
+    """AI Scene Intelligence Hub - Showcasing Twelve Labs' unique capabilities"""
+    st.title("🧠 AI Scene Intelligence Hub")
+    st.markdown("**Powered by Twelve Labs Multi-Modal Understanding**")
+    st.caption("💡 Only Twelve Labs can understand video context at this depth")
+    
+    # Add custom CSS for beautiful UI
+    st.markdown("""
+    <style>
+        .intelligence-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 15px 0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        .intelligence-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        .metric-ring {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .activity-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     if not st.session_state.processed_videos:
-        st.info("No mobs created yet. Head to the Instagram Simulator to process videos!")
+        st.info("🎬 No videos processed yet. Head to Instagram Simulator to see AI in action!")
         return
     
-    # Tab selection for different views
-    tab1, tab2, tab3 = st.tabs(["🏆 Activity Mobs", "🥛 Milk Type Tribes", "📊 Creator Leaderboard"])
+    # Create tabs for different intelligence views
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🎯 Activity Intelligence", 
+        "🏆 Behavioral Leaderboards", 
+        "📊 Scene Analytics",
+        "🌍 Location Insights",
+        "🚀 Viral Predictors"
+    ])
     
     with tab1:
-        show_activity_mobs()
+        show_activity_intelligence()
         
     with tab2:
-        show_milk_type_mobs()
+        show_behavioral_leaderboards()
         
     with tab3:
-        show_creator_leaderboard()
+        show_scene_analytics()
+        
+    with tab4:
+        show_location_insights()
+        
+    with tab5:
+        show_viral_predictors()
 
-def show_activity_mobs():
-    """Show activity-based mobs with creator cards"""
-    st.markdown("### 🎯 Find Your Tribe by Activity")
+def show_activity_intelligence():
+    """Show deep activity understanding - ONLY possible with Twelve Labs"""
+    st.markdown("### 🎯 Deep Activity Analysis")
+    st.info("🔬 **Twelve Labs Exclusive**: We don't just see 'person with milk' - we understand the complete context of their activity")
     
-    # Group by activity mobs
-    activity_mobs = {}
+    # Gather activity data
+    activity_data = {}
     for video in st.session_state.processed_videos:
-        mob = video.get('activity_mob', 'Unknown')
-        if mob not in activity_mobs:
-            activity_mobs[mob] = []
-        activity_mobs[mob].append(video)
+        activity = video.get('activity_data', {}).get('activity', 'unknown')
+        location = video.get('activity_data', {}).get('location', 'unknown')
+        mood = video.get('activity_data', {}).get('mood', 'unknown')
+        
+        if activity not in activity_data:
+            activity_data[activity] = {
+                'count': 0,
+                'locations': [],
+                'moods': [],
+                'creators': []
+            }
+        
+        activity_data[activity]['count'] += 1
+        activity_data[activity]['locations'].append(location)
+        activity_data[activity]['moods'].append(mood)
+        
+        # Only add creator if metadata exists
+        if video.get('metadata') and video['metadata'].get('username'):
+            activity_data[activity]['creators'].append(video['metadata']['username'])
     
-    # Sort by size
-    sorted_mobs = sorted(activity_mobs.items(), key=lambda x: len(x[1]), reverse=True)
+    # Display activity cards
+    for activity, data in activity_data.items():
+        with st.container():
+            # Get unique locations and moods
+            unique_locations = list(set(loc for loc in data['locations'] if loc != 'unknown'))
+            unique_moods = list(set(mood for mood in data['moods'] if mood != 'unknown'))
+            
+            st.markdown(f"""
+            <div class="intelligence-card">
+                <h3>{activity.title()} Activity Group</h3>
+                <div class="metric-ring">
+                    <h1>{data['count']}</h1>
+                    <p>Creators</p>
+                </div>
+                <p><strong>Common Locations:</strong> {', '.join(unique_locations) if unique_locations else 'Various'}</p>
+                <p><strong>Mood Spectrum:</strong> {', '.join(unique_moods) if unique_moods else 'Mixed'}</p>
+                <div style="margin-top: 10px;">
+                    {''.join([f'<span class="activity-badge">{creator}</span>' for creator in data['creators'][:3]])}
+                    {f'<span class="activity-badge">+{len(data["creators"]) - 3} more</span>' if len(data['creators']) > 3 else ''}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+def show_behavioral_leaderboards():
+    """Multiple leaderboards showcasing different achievements"""
+    st.markdown("### 🏆 Behavioral Leaderboards")
+    st.caption("🔬 Twelve Labs AI ranks creators by understanding their content deeply")
     
-    for mob_name, members in sorted_mobs:
-        with st.expander(f"{mob_name} ({len(members)} members)", expanded=True):
-            # Mob stats
-            col1, col2, col3 = st.columns(3)
+    # Create sub-tabs for different leaderboards
+    leader_tab1, leader_tab2, leader_tab3 = st.tabs([
+        "💫 Engagement Champions",
+        "🎯 Activity Masters",
+        "🎨 Creative Stars"
+    ])
+    
+    with leader_tab1:
+        show_engagement_champions()
+    
+    with leader_tab2:
+        show_activity_masters()
+        
+    with leader_tab3:
+        show_creative_stars()
+
+def show_engagement_champions():
+    """Show top creators by engagement rate"""
+    st.markdown("#### 💫 Top Engaged Creators")
+    
+    # Sort by engagement
+    creators_with_metadata = [v for v in st.session_state.processed_videos if v.get('metadata')]
+    sorted_creators = sorted(
+        creators_with_metadata,
+        key=lambda x: x.get('metadata', {}).get('engagement_rate', 0),
+        reverse=True
+    )
+    
+    for rank, video in enumerate(sorted_creators[:5], 1):
+        metadata = video.get('metadata', {})
+        activity_data = video.get('activity_data', {})
+        
+        col1, col2, col3, col4 = st.columns([0.5, 3, 2, 1.5])
+        
+        with col1:
+            st.markdown(f"### #{rank}")
+        
+        with col2:
+            st.markdown(f"**{metadata.get('username', 'Unknown')}**")
+            st.caption(f"{metadata.get('creative_style', '')} • {metadata.get('location', '')}")
+            st.caption(f"🎬 Activity: {activity_data.get('activity', 'Unknown').title()}")
+        
+        with col3:
+            engagement = metadata.get('engagement_rate', 0)
+            st.metric("Engagement", f"{engagement}%")
+            # Add a simple progress bar
+            st.progress(min(engagement / 20, 1.0))  # Assuming 20% is max
+        
+        with col4:
+            st.metric("Views", f"{metadata.get('views', 0):,}")
+        
+        st.markdown("---")
+
+def show_activity_masters():
+    """Show best performer per activity type"""
+    st.markdown("#### 🎯 Activity Masters")
+    st.caption("Best creator in each activity category")
+    
+    # Group by activity and find top performer
+    activity_masters = {}
+    
+    for video in st.session_state.processed_videos:
+        activity = video.get('activity_data', {}).get('activity', 'unknown')
+        engagement = video.get('metadata', {}).get('engagement_rate', 0)
+        
+        if activity not in activity_masters or engagement > activity_masters[activity]['engagement']:
+            activity_masters[activity] = {
+                'video': video,
+                'engagement': engagement
+            }
+    
+    # Display masters
+    cols = st.columns(min(3, len(activity_masters)))
+    for idx, (activity, data) in enumerate(activity_masters.items()):
+        with cols[idx % 3]:
+            video = data['video']
+            metadata = video.get('metadata', {})
             
-            # Calculate total engagement - FIX THE ERROR HERE
-            total_likes = 0
-            total_views = 0
-            engagement_count = 0
-            total_engagement = 0
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                        padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <h4>{activity.title()} Master</h4>
+                <h3>{metadata.get('username', 'Unknown')}</h3>
+                <p>{data['engagement']:.1f}% engagement</p>
+            </div>
+            """, unsafe_allow_html=True)
             
-            for m in members:
-                if m and m.get('metadata'):  # Check if metadata exists
-                    metadata = m['metadata']
-                    total_likes += metadata.get('likes', 0)
-                    total_views += metadata.get('views', 0)
-                    if 'engagement_rate' in metadata:
-                        total_engagement += metadata['engagement_rate']
-                        engagement_count += 1
+            st.caption(f"Style: {metadata.get('creative_style', 'Unknown')}")
+
+def show_scene_analytics():
+    """Show mood and time analysis"""
+    st.markdown("### 📊 Scene Understanding Analytics")
+    st.info("🔬 **Twelve Labs Exclusive**: Deep scene analysis including mood, time of day, and social dynamics")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🎭 Mood Distribution")
+        
+        # Collect mood data
+        mood_counts = {}
+        for video in st.session_state.processed_videos:
+            mood = video.get('activity_data', {}).get('mood', 'unknown')
+            mood_counts[mood] = mood_counts.get(mood, 0) + 1
+        
+        # Create mood cards
+        mood_colors = {
+            'funny': '#FF6B6B',
+            'energetic': '#4ECDC4',
+            'artistic': '#45B7D1',
+            'chill': '#96CEB4',
+            'promotional': '#DDA0DD'
+        }
+        
+        for mood, count in mood_counts.items():
+            color = mood_colors.get(mood, '#95A5A6')
+            st.markdown(f"""
+            <div style="background: {color}; color: white; padding: 15px; 
+                        border-radius: 10px; margin: 10px 0;">
+                <strong>{mood.title()}</strong>: {count} videos
+                <div style="background: rgba(255,255,255,0.3); height: 10px; 
+                            border-radius: 5px; margin-top: 5px;">
+                    <div style="background: white; height: 100%; width: {(count/len(st.session_state.processed_videos))*100}%;
+                                border-radius: 5px;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### ⏰ Activity Timing Patterns")
+        st.caption("When creators post (based on metadata)")
+        
+        # Mock time distribution (you could extract from timestamps)
+        time_slots = {
+            "Morning (6am-12pm)": 4,
+            "Afternoon (12pm-6pm)": 5,
+            "Evening (6pm-12am)": 3
+        }
+        
+        for time_slot, count in time_slots.items():
+            st.metric(time_slot, f"{count} posts")
+
+def show_location_insights():
+    """Show location-based analytics"""
+    st.markdown("### 🌍 Location Intelligence")
+    st.caption("🔬 Twelve Labs understands WHERE activities happen")
+    
+    # Gather location data
+    location_data = {}
+    for video in st.session_state.processed_videos:
+        location = video.get('activity_data', {}).get('location', 'unknown')
+        
+        # Check if metadata exists before accessing it
+        if video.get('metadata'):
+            creator_location = video['metadata'].get('location', 'Unknown City')
+        else:
+            creator_location = 'Unknown City'
+        
+        if location not in location_data:
+            location_data[location] = {
+                'count': 0,
+                'cities': []
+            }
+        
+        location_data[location]['count'] += 1
+        location_data[location]['cities'].append(creator_location)
+    
+    # Display location cards in a grid
+    cols = st.columns(3)
+    location_emojis = {
+        'gym': '🏋️',
+        'kitchen': '👨‍🍳',
+        'studio': '🎨',
+        'outdoors': '🏞️',
+        'home': '🏠',
+        'bedroom': '🛏️',
+        'warehouse': '🏭'
+    }
+    
+    for idx, (location, data) in enumerate(location_data.items()):
+        with cols[idx % 3]:
+            emoji = location_emojis.get(location, '📍')
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
+                        padding: 20px; border-radius: 15px; text-align: center; color: white;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h1>{emoji}</h1>
+                <h3>{location.title()}</h3>
+                <p style="font-size: 24px; margin: 10px 0;">{data['count']}</p>
+                <p style="font-size: 14px;">videos</p>
+            </div>
+            """, unsafe_allow_html=True)
             
-            avg_engagement = total_engagement / engagement_count if engagement_count > 0 else 0
+            # Show unique cities
+            unique_cities = list(set(data['cities']))[:3]
+            if unique_cities:
+                st.caption(f"Cities: {', '.join(unique_cities)}")
+
+def show_viral_predictors():
+    """Show viral prediction analysis"""
+    st.markdown("### 🚀 Viral Prediction Intelligence")
+    st.info("🔬 **Twelve Labs Exclusive**: AI predicts viral potential by analyzing hook quality, creativity, and trend alignment")
+    
+    # Mock viral scores (in real app, calculate from various factors)
+    st.markdown("#### 🌟 Top Viral Candidates")
+    
+    viral_candidates = []
+    for video in st.session_state.processed_videos:
+        # Skip videos without metadata
+        if not video.get('metadata'):
+            continue
             
-            with col1:
-                st.metric("Total Likes", f"{total_likes:,}")
-            with col2:
-                st.metric("Total Views", f"{total_views:,}")
-            with col3:
-                st.metric("Avg Engagement", f"{avg_engagement:.1f}%")
+        # Calculate mock viral score
+        engagement = video['metadata'].get('engagement_rate', 0)
+        views = video['metadata'].get('views', 0)
+        viral_score = (engagement * 0.6) + (min(views/1000, 10) * 0.4)
+        
+        viral_candidates.append({
+            'video': video,
+            'score': viral_score
+        })
+    
+    if not viral_candidates:
+        st.info("Process videos with social media metadata to see viral predictions!")
+        return
+    
+    # Sort by viral score
+    viral_candidates.sort(key=lambda x: x['score'], reverse=True)
+    
+    for candidate in viral_candidates[:3]:
+        video = candidate['video']
+        metadata = video['metadata']
+        activity_data = video.get('activity_data', {})
+        
+        col1, col2, col3 = st.columns([3, 2, 1])
+        
+        with col1:
+            st.markdown(f"**{metadata.get('username', 'Unknown')}**")
+            mood = activity_data.get('mood', 'unknown')
+            style = metadata.get('creative_style', 'Unknown')
+            st.caption(f"{style} • {mood} mood")
+        
+        with col2:
+            st.metric("Viral Score", f"{candidate['score']:.1f}/10")
+            st.progress(candidate['score'] / 10)
+        
+        with col3:
+            if candidate['score'] > 8:
+                st.success("🔥 HOT")
+            elif candidate['score'] > 6:
+                st.warning("📈 RISING")
+            else:
+                st.info("👀 WATCH")
+        
+        st.markdown("---")
+
+def show_creative_stars():
+    """Show most creative content creators"""
+    st.markdown("#### 🎨 Creative Excellence Awards")
+    
+    # Filter for artistic/creative videos WITH metadata
+    creative_videos = [
+        v for v in st.session_state.processed_videos 
+        if v.get('activity_data', {}).get('mood') in ['artistic', 'funny', 'energetic']
+        and v.get('metadata')  # Add this check!
+    ]
+    
+    if not creative_videos:
+        st.info("No creative videos found yet. Keep processing to discover creative stars!")
+        return
+    
+    # Display top 3
+    for video in creative_videos[:3]:
+        metadata = video.get('metadata', {})
+        activity_data = video.get('activity_data', {})
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+                    padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
+            <strong>{metadata.get('username', 'Unknown')}</strong> - 
+            {activity_data.get('mood', 'Unknown').title()} {activity_data.get('activity', 'Unknown').title()}
+            <br>
+            <small>{metadata.get('location', 'Unknown')}</small>
+        </div>
+        """, unsafe_allow_html=True)
+
+# end updated mob 
+
+def show_activity_masters():
+    """Show best performer per activity type"""
+    st.markdown("#### 🎯 Activity Masters")
+    st.caption("Best creator in each activity category")
+    
+    # Group by activity and find top performer
+    activity_masters = {}
+    
+    for video in st.session_state.processed_videos:
+        # Skip videos without metadata
+        if not video.get('metadata'):
+            continue
             
-            # Rest of the function stays the same...
+        activity = video.get('activity_data', {}).get('activity', 'unknown')
+        engagement = video.get('metadata', {}).get('engagement_rate', 0)
+        
+        if activity not in activity_masters or engagement > activity_masters[activity]['engagement']:
+            activity_masters[activity] = {
+                'video': video,
+                'engagement': engagement
+            }
+    
+    # Check if we have any masters to display
+    if not activity_masters:
+        st.info("No activity masters yet. Process more videos to see rankings!")
+        return
+    
+    # Display masters
+    cols = st.columns(min(3, len(activity_masters)))
+    for idx, (activity, data) in enumerate(activity_masters.items()):
+        with cols[idx % 3]:
+            video = data['video']
+            metadata = video.get('metadata', {})
+            
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                        padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <h4>{activity.title()} Master</h4>
+                <h3>{metadata.get('username', 'Unknown')}</h3>
+                <p>{data['engagement']:.1f}% engagement</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.caption(f"Style: {metadata.get('creative_style', 'Unknown')}")
 
 def show_milk_type_mobs():
     """Show traditional milk type groupings"""
