@@ -40,6 +40,306 @@ st.set_page_config(
     layout="wide"
 )
 
+# UI ADDITions==========================================
+
+# def apply_custom_theme():
+#     """Apply modern UI theme with dark grey background"""
+#     st.markdown("""
+#     <style>
+#         /* Main app background - dark grey */
+#         .stApp {
+#             background: #22437f;
+#         }
+        
+#         /* Main content area - also dark grey */
+#         .main .block-container {
+#             background: #22437f;
+#         }
+        
+#         /* Remove default white backgrounds */
+#         .stApp > div {
+#             background: #22437f;
+#         }
+        
+#         /* Main content panel */
+#         [data-testid="stAppViewContainer"] {
+#             background: #22437f;
+#         }
+        
+#         /* The actual content area */
+#         .main {
+#             background: #22437f;
+#         }
+        
+#         section.main > div {
+#             background: #22437f;
+#         }
+        
+#         /* Fix text colors for dark background */
+#         .stApp p, .stApp span, .stApp label, .stApp div {
+#             color: white !important;
+#         }
+        
+#         /* Headers stay white */
+#         .stApp h1, .stApp h2, .stApp h3 {
+#             color: white !important;
+#         }
+        
+#         /* Fix sidebar */
+#         section[data-testid="stSidebar"] {
+#             background: #1a335f;
+#         }
+        
+#         section[data-testid="stSidebar"] p, 
+#         section[data-testid="stSidebar"] span,
+#         section[data-testid="stSidebar"] label {
+#             color: white !important;
+#         }
+        
+#         /* Keep your nice buttons */
+#         .stButton > button {
+#             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+#             color: white !important;
+#             border: none;
+#             border-radius: 25px;
+#             padding: 0.75rem 2rem;
+#             font-weight: 600;
+#             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+#             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+#         }
+        
+#         .stButton > button:hover {
+#             transform: translateY(-2px);
+#             box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+#         }
+        
+#         /* Metrics */
+#         [data-testid="metric-container"] {
+#             background: rgba(255, 255, 255, 0.1);
+#             backdrop-filter: blur(10px);
+#             border-radius: 15px;
+#             padding: 20px;
+#             border: 1px solid rgba(255, 255, 255, 0.2);
+#         }
+        
+#         /* Remove any remaining blue gradients */
+#         * {
+#             background-image: none !important;
+#         }
+        
+#         /* Then add back button gradients */
+#         .stButton > button {
+#             background-image: linear-gradient(45deg, #667eea 0%, #764ba2 100%) !important;
+#         }
+#     </style>
+#     """, unsafe_allow_html=True)
+
+# apply_custom_theme()
+
+def show_processing_animation(message, duration=2):
+    """Show animated milk processing with fun messages"""
+    milk_facts = [
+        "🥛 Fun fact: Cows produce 90% of the world's milk!",
+        "🐄 Did you know: A cow produces about 6 gallons of milk per day!",
+        "🥛 Interesting: Milk is the official beverage of 21 US states!",
+        "🧈 Cool fact: It takes 21.2 pounds of milk to make 1 pound of butter!",
+        "🥛 Amazing: Americans consume about 18 gallons of milk per year!"
+    ]
+    
+    placeholder = st.empty()
+    
+    # Animated milk filling up
+    for i in range(5):
+        opacity = 0.2 + (i * 0.2)
+        progress_width = (i + 1) * 20
+        
+        placeholder.markdown(f"""
+        <div style='text-align: center; padding: 20px;'>
+            <div style='font-size: 80px; line-height: 1;'>
+                <span style='opacity: {opacity};'>🥛</span>
+            </div>
+            <h3 style='color: white; margin-top: 20px;'>{message}</h3>
+            <p style='color: rgba(255,255,255,0.7); margin-top: 10px;'>
+                {milk_facts[i % len(milk_facts)]}
+            </p>
+            <div style='
+                width: 300px;
+                height: 6px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 3px;
+                margin: 20px auto;
+                overflow: hidden;
+            '>
+                <div style='
+                    width: {progress_width}%;
+                    height: 100%;
+                    background: linear-gradient(90deg, #667eea, #764ba2);
+                    animation: shimmer 1s ease-in-out infinite;
+                '>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            @keyframes shimmer {{
+                0% {{ transform: translateX(-100%); }}
+                100% {{ transform: translateX(100%); }}
+            }}
+        </style>
+        """, unsafe_allow_html=True)
+        time.sleep(duration / 5)
+    
+    placeholder.empty()
+
+# def display_confidence_score(confidence, detection_methods):
+#     """Display confidence score with visual indicators"""
+    
+#     # Determine color based on confidence
+#     if confidence >= 87:
+#         color = '#4CAF50'  # Green
+#         status = 'High Confidence'
+#         emoji = '✅'
+#     elif confidence >= 85:
+#         color = '#FF9800'  # Orange
+#         status = 'Good Confidence'
+#         emoji = '👍'
+#     else:
+#         color = '#F44336'  # Red
+#         status = 'Low Confidence'
+#         emoji = '⚠️'
+    
+#     # Create the visualization
+#     st.markdown(f"""
+#     <div style='
+#         background: rgba(255,255,255,0.1);
+#         border-radius: 20px;
+#         padding: 30px;
+#         margin: 20px 0;
+#         backdrop-filter: blur(10px);
+#         border: 1px solid rgba(255,255,255,0.2);
+#     '>
+#         <h3 style='color: white; margin: 0 0 20px 0; text-align: center;'>
+#             {emoji} Milk Detection Results
+#         </h3>
+        
+#         <!-- Circular progress indicator -->
+#         <div style='text-align: center; margin: 20px 0;'>
+#             <svg width="150" height="150" style='transform: rotate(-90deg);'>
+#                 <circle cx="75" cy="75" r="60" 
+#                     stroke="rgba(255,255,255,0.2)" 
+#                     stroke-width="15" 
+#                     fill="none" />
+#                 <circle cx="75" cy="75" r="60" 
+#                     stroke="{color}" 
+#                     stroke-width="15" 
+#                     fill="none"
+#                     stroke-dasharray="{confidence * 3.77} 377"
+#                     stroke-linecap="round"
+#                     style='transition: stroke-dasharray 1s ease-in-out;' />
+#             </svg>
+#             <div style='
+#                 margin-top: -90px;
+#                 font-size: 36px;
+#                 font-weight: bold;
+#                 color: {color};
+#             '>{confidence:.1f}%</div>
+#             <div style='color: rgba(255,255,255,0.8); font-size: 14px;'>
+#                 {status}
+#             </div>
+#         </div>
+        
+#         <!-- Detection methods -->
+#         <div style='
+#             display: flex;
+#             justify-content: center;
+#             gap: 20px;
+#             margin-top: 30px;
+#             flex-wrap: wrap;
+#         '>
+#     """, unsafe_allow_html=True)
+    
+#     # Add detection method badges
+#     for method in ['visual', 'audio', 'text']:
+#         is_detected = method in detection_methods
+#         method_color = '#4CAF50' if is_detected else 'rgba(255,255,255,0.5)'
+#         method_bg = 'rgba(76, 175, 80, 0.3)' if is_detected else 'rgba(255,255,255,0.1)'
+#         method_border = '#4CAF50' if is_detected else 'rgba(255,255,255,0.2)'
+#         method_label = {'visual': '👁️ Visual', 'audio': '🔊 Audio', 'text': '📝 Text'}.get(method, method)
+        
+#         st.markdown(f"""
+#             <div style='
+#                 background: {method_bg};
+#                 border: 1px solid {method_border};
+#                 border-radius: 20px;
+#                 padding: 8px 16px;
+#                 color: {method_color};
+#                 font-size: 14px;
+#                 font-weight: 500;
+#                 display: inline-block;
+#                 margin: 5px;
+#             '>
+#                 {method_label}
+#             </div>
+#         """, unsafe_allow_html=True)
+    
+#     st.markdown("</div></div>", unsafe_allow_html=True)
+
+def display_mob_gallery():
+    """Display mob cards with colored backgrounds"""
+    
+    # Count videos per mob from session state
+    mob_counts = {}
+    for video in st.session_state.processed_videos:
+        mob = video.get('activity_mob', 'Unknown')
+        mob_counts[mob] = mob_counts.get(mob, 0) + 1
+    
+    # Define mob data with proper trending (only Gym and Comedy have trends)
+    mobs = [
+        ("Gym Warriors 💪", "Post-workout milk crew", mob_counts.get("Gym Warriors 💪", 0), "+12%", "error"),
+        ("Comedy Kings 😂", "Hilarious milk moments", mob_counts.get("Comedy Kings 😂", 0), "+8%", "info"),
+        ("Creative Collective 🎨", "Artistic milk expression", mob_counts.get("Creative Collective 🎨", 0), "0%", "warning"),
+        ("Kitchen Creators 👨‍🍳", "Culinary milk masters", mob_counts.get("Kitchen Creators 👨‍🍳", 0), "0%", "success"),
+        ("Home Chillers 🏠", "Cozy milk vibes", mob_counts.get("Home Chillers 🏠", 0), "0%", "info"),
+        ("Adventure Squad 🏞️", "Milk in the wild", mob_counts.get("Adventure Squad 🏞️", 0), "0%", "error")
+    ]
+    
+    # Create two columns
+    col1, col2 = st.columns(2)
+    
+    for idx, (name, desc, count, trend, style) in enumerate(mobs):
+        with col1 if idx % 2 == 0 else col2:
+            # Create the colored box with info prominently displayed
+            if style == "error":
+                st.error(f"""
+                ### {name}
+                *{desc}*
+                
+                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                """)
+            elif style == "info":
+                st.info(f"""
+                ### {name}
+                *{desc}*
+                
+                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                """)
+            elif style == "warning":
+                st.warning(f"""
+                ### {name}
+                *{desc}*
+                
+                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                """)
+            elif style == "success":
+                st.success(f"""
+                ### {name}
+                *{desc}*
+                
+                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                """)
+            st.markdown("")  # Add spacing between cards
+
+# END UI ADITTIONS ===============================================
 def extract_activity_data(analysis_text):
     """Extract activity, location, and mood from Pegasus analysis"""
     
@@ -244,7 +544,7 @@ def main():
             "🚀 Tech Showcase": "Tech",
             "🏠 API Details": "API",
             "⚙️ Setup Index": "Setup",
-            "📱 Instagram Feed": "Instagram",  # NEW!
+            "📱 Social Feed Simulator": "Social",  # NEW!
             "🎬 Upload Video No MetaData": "Upload",
             "🌟 Mob Explorer": "Mobs",        # NEW!
             "📊 Dashboard": "Dashboard", 
@@ -271,7 +571,7 @@ def main():
         show_upload_page(client)
     elif st.session_state.current_page == "Dashboard":
         show_dashboard_page()
-    elif st.session_state.current_page == "Instagram":
+    elif st.session_state.current_page == "Social":
         show_instagram_simulator()
     elif st.session_state.current_page == "Mobs":
         show_mob_explorer()
@@ -1389,6 +1689,21 @@ def process_video(client, video_file, filename=None):
         logger.info(f"🔍 CONFIDENCE DEBUG: Initialized confidence = {confidence}")
         detected_type = "Unknown"
         detection_methods = []
+
+        # # UI DETECTION METHODS
+        # if visual_confidence > 0:
+        #     detection_methods.append("visual")
+        # if audio_confidence > 0:
+        #     detection_methods.append("audio")
+        # if text_confidence > 0:
+        #     detection_methods.append("text")
+
+        # # If using Pegasus, you might have:
+        # if "AI Analysis (Pegasus)" not in detection_methods and milk_found:
+        #     detection_methods.append("visual")  # Default to visual if Pegasus found it
+
+
+
         analysis_text = ""  # Store the analysis for later use
         
         # Wait for SEARCH AI to complete. KEY FOR CONFIDENCE SCORING TO BE SHOW CORRECTLY 
@@ -1605,8 +1920,8 @@ def process_video(client, video_file, filename=None):
             }
             add_to_logs(log_entry)
             
-            st.success("✅ Milk Content Validated!")
-            st.balloons()
+            # display_confidence_score(confidence, detection_methods)
+            # st.balloons()
 
             # NEW: Display AI Scene Analysis
             st.markdown("### 🤖 AI Scene Analysis")
@@ -1736,9 +2051,33 @@ def process_video(client, video_file, filename=None):
         with st.expander("🔍 Technical Details"):
             st.write(f"**Task ID:** {task.id}")
             st.write(f"**Video ID:** {video_id}")
-            st.write(f"**Detection Methods Used:** {', '.join(detection_methods)}")
+            st.write(f"**Main Detection Methods Used:** {', '.join(detection_methods)}")
             st.write(f"**Processing Time:** {time.time() - start_time:.1f} seconds")
             st.write(f"**Final Confidence:** {confidence:.2f}%")
+        with st.expander("🔧 AI Analysis Steps - Developer Info"):
+            st.text(f"""
+        📤 Video Upload - Complete
+        ✅ Task ID: {task.id}
+        ✅ Video ID: {video_id}
+
+        🧠 Pegasus Analysis - Complete
+        ✅ Activity: {activity if 'activity' in locals() else 'Failed'}
+        ✅ Location: {location if 'location' in locals() else 'Failed'}
+        ✅ Mood: {mood if 'mood' in locals() else 'Failed'}
+
+        🔍 Detection Results
+        {'✅' if milk_found else '❌'} Milk Found: {milk_found}
+        ✅ Milk Type: {detected_type if milk_found else 'None'}
+        ✅ Confidence: {confidence:.2f}%
+
+        🎯 Mob Assignment
+        ✅ Activity Mob: {activity_mob if 'activity_mob' in locals() else 'None'}
+        ✅ Milk Type Mob: {mob_name if 'mob_name' in locals() else 'None'}
+
+        ⏱️ Processing Time: {time.time() - start_time:.1f} seconds
+        """)
+                        
+
                         
     except Exception as e:
         logger.error(f"Error processing video: {str(e)}", exc_info=True)
@@ -2061,7 +2400,8 @@ def show_instagram_simulator():
     
     # Find ALL unprocessed videos with metadata (regardless of hashtags)
     available_videos = []
-    for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
+    # "test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"
+    for pattern in ["test_videos/test/*.mp4",]:
         for video_path in glob.glob(pattern):
             filename = os.path.basename(video_path)
             
@@ -2492,33 +2832,34 @@ def show_mob_explorer():
         # ACTIVITY MOBS
         st.markdown("### 🎯 Behavioral Mob Distribution")
         
+        display_mob_gallery()
         # Count mobs
-        mob_counts = {}
-        for video in st.session_state.processed_videos:
-            mob = video.get('activity_mob', 'Unknown')
-            mob_counts[mob] = mob_counts.get(mob, 0) + 1
+        # mob_counts = {}
+        # for video in st.session_state.processed_videos:
+        #     mob = video.get('activity_mob', 'Unknown')
+        #     mob_counts[mob] = mob_counts.get(mob, 0) + 1
         
-        # Display mob cards
-        for mob, count in mob_counts.items():
-            mob_emoji = {
-                "Gym Warriors": "💪",
-                "Creative Collective": "🎨",
-                "Comedy Kings": "😂",
-                "Home Chillers": "🏠",
-                "Kitchen Creators": "👨‍🍳"
-            }.get(mob, "❓")
+        # # Display mob cards
+        # for mob, count in mob_counts.items():
+        #     mob_emoji = {
+        #         "Gym Warriors": "💪",
+        #         "Creative Collective": "🎨",
+        #         "Comedy Kings": "😂",
+        #         "Home Chillers": "🏠",
+        #         "Kitchen Creators": "👨‍🍳"
+        #     }.get(mob, "❓")
             
-            with st.expander(f"{mob_emoji} **{mob}** ({count} members)", expanded=True):
-                # Show videos in this mob
-                mob_videos = [v for v in st.session_state.processed_videos if v.get('activity_mob') == mob]
+        #     with st.expander(f"{mob_emoji} **{mob}** ({count} members)", expanded=True):
+        #         # Show videos in this mob
+        #         mob_videos = [v for v in st.session_state.processed_videos if v.get('activity_mob') == mob]
                 
-                for video in mob_videos:
-                    col1, col2 = st.columns([3, 1])
-                    with col1:
-                        st.write(f"📹 {video['filename']}")
-                        st.caption(f"Confidence: {video['confidence']:.1f}% • {video.get('milk_type', 'Unknown')} milk")
-                    with col2:
-                        st.metric("Score", f"{video['confidence']:.0f}%")
+        #         for video in mob_videos:
+        #             col1, col2 = st.columns([3, 1])
+        #             with col1:
+        #                 st.write(f"📹 {video['filename']}")
+        #                 st.caption(f"Confidence: {video['confidence']:.1f}% • {video.get('milk_type', 'Unknown')} milk")
+        #             with col2:
+        #                 st.metric("Score", f"{video['confidence']:.0f}%")
     
     with tab3:
         # CREATOR LEADERBOARD
