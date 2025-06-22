@@ -314,21 +314,21 @@ def display_mob_gallery():
                 ### {name}
                 *{desc}*
                 
-                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                **📊 Videos: {count}** 
                 """)
             elif style == "info":
                 st.info(f"""
                 ### {name}
                 *{desc}*
                 
-                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                **📊 Videos: {count}** 
                 """)
             elif style == "warning":
                 st.warning(f"""
                 ### {name}
                 *{desc}*
                 
-                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                **📊 Videos: {count}** 
                 """)
             elif style == "success":
                 st.success(f"""
