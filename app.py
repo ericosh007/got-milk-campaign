@@ -15,6 +15,7 @@ import glob
 import pandas as pd
 import logging
 import sys
+import re
 from datetime import datetime
 
 # Load environment variables from .env file
@@ -240,13 +241,15 @@ def main():
         
         # Navigation menu
         pages = {
-            "🏠 Home": "Home",
+            "🚀 Tech Showcase": "Tech",
+            "🏠 API Details": "API",
             "⚙️ Setup Index": "Setup",
             "📱 Instagram Feed": "Instagram",  # NEW!
-            "🎬 Upload Video": "Upload",
+            "🎬 Upload Video No MetaData": "Upload",
             "🌟 Mob Explorer": "Mobs",        # NEW!
-            "📊 Dashboard": "Dashboard",
-            "🚀 Tech Showcase": "Tech"  # ADD THIS
+            "📊 Dashboard": "Dashboard", 
+            "📁 Got Milk Directory" : "Directory"
+             # ADD THIS
         }
         
         for label, page in pages.items():
@@ -260,7 +263,7 @@ def main():
             check_usage(client)
     
     # Display current page
-    if st.session_state.current_page == "Home":
+    if st.session_state.current_page == "API":
         show_home_page()
     elif st.session_state.current_page == "Setup":
         show_setup_page(client)
@@ -274,6 +277,9 @@ def main():
         show_mob_explorer()
     elif st.session_state.current_page == "Tech":
         show_tech_showcase()
+    elif page == "Directory":
+        show_got_milk_directory()
+    
 
 def check_usage(client):
     """Check Twelve Labs usage"""
@@ -553,7 +559,628 @@ def has_campaign_hashtags(metadata):
 
 # Metadata check---------------------
 
-# New Process ---------------------------------------------------------------
+# def process_video(client, video_file, filename=None):
+#     """
+#     Complete video processing pipeline:
+#     1. Load video and metadata
+#     2. Check for campaign hashtags (#gotmilk or #milkmob)
+#     3. If campaign participant → Send to Twelve Labs
+#     4. Detect milk content using Pegasus/multi-modal analysis
+#     5. If milk found → Assign to appropriate mob
+#     """
+#     logger.info(f"=== PROCESS VIDEO DEBUG ===")
+#     logger.info(f"Processing file: {video_file}")
+#     logger.info(f"Filename: {filename}")
+    
+    
+#     # Track processing time
+#     start_time = time.time()
+
+#     # ===== STEP 0: tracking =====
+
+
+#     # progress = st.progress(0)
+#     # status = st.empty()
+    
+    
+#     # ===== STEP 1: SETUP AND INITIALIZATION =====
+#     if filename is None:
+#         filename = video_file.name if hasattr(video_file, 'name') else "uploaded_video.mp4"
+    
+#     logger.info(f"=" * 60)
+#     logger.info(f"STARTING PROCESS FOR: {filename}")
+#     logger.info(f"=" * 60)
+    
+#     # ===== STEP 2: LOAD METADATA (Social Media Post Info) =====
+#     metadata = None
+#     video_path = None
+    
+#     # Check if this is a test video (string path) or uploaded file
+#     if isinstance(video_file, str):
+#         # This is a test video with a file path
+#         video_path = video_file
+#         metadata_path = video_file.replace('.mp4', '_metadata.json')
+        
+#         if os.path.exists(metadata_path):
+#             with open(metadata_path, 'r') as f:
+#                 metadata = json.load(f)
+#                 logger.info(f"Found metadata for user: @{metadata.get('username')}")
+#         else:
+#             logger.info("No metadata found - quarantining")
+#             # QUARANTINE: Missing Metadata
+#             log_entry = {
+#                 "timestamp": datetime.now().isoformat(),
+#                 "filename": filename,
+#                 "status": "quarantined",
+#                 "reason": "missing_metadata",
+#                 "details": {
+#                     "error": "No social media post data found",
+#                     "action": "Video must be posted with metadata"
+#                 }
+#             }
+#             st.session_state.quarantined_videos['missing_metadata'].append(log_entry)
+#             add_to_logs(log_entry)
+            
+#             # Show error to user
+#             st.error("❌ Quarantined: Missing Metadata")
+#             st.warning("This video has no social media post data")
+            
+#             with st.expander("❓ Why was this video quarantined?"):
+#                 st.write("**No metadata file found!**")
+#                 st.write("This appears to be a direct upload without social media context.")
+#                 st.write("To participate in the campaign, videos must be posted on social media with proper hashtags.")
+            
+#             return  # STOP PROCESSING
+    
+#     # ===== STEP 3: DISPLAY SOCIAL MEDIA CONTEXT =====
+#     if metadata:
+#         # Show the Instagram/TikTok post information
+#         st.markdown("### 📱 Social Media Post")
+        
+#         col1, col2 = st.columns([1, 4])
+#         with col1:
+#             st.metric("Likes", f"{metadata.get('likes', 0):,}")
+#         with col2:
+#             st.info(f"**{metadata['username']}**")
+#             st.caption(metadata['caption'])
+            
+#         # Display hashtags prominently
+#         hashtag_str = ' '.join(metadata['hashtags'])
+#         if '#gotmilk' in metadata['hashtags'] or '#milkmob' in metadata['hashtags']:
+#             st.success(f"**Hashtags:** {hashtag_str}")
+#         else:
+#             st.warning(f"**Hashtags:** {hashtag_str}")
+    
+#     # ===== STEP 4: CAMPAIGN HASHTAG VERIFICATION =====
+#     # Check if this is a campaign video
+#     if metadata:
+#         hashtags = metadata.get('hashtags', [])
+#         has_campaign_tag = '#gotmilk' in hashtags or '#milkmob' in hashtags
+
+#         logger.info(f"DEBUG: Found hashtags: {hashtags}")  # Add this
+        
+#         if not has_campaign_tag:
+#             # NOT A CAMPAIGN VIDEO - QUARANTINE
+#             logger.info(f"REJECTED: No campaign hashtags found")
+            
+#             log_entry = {
+#                 "timestamp": datetime.now().isoformat(),
+#                 "filename": filename,
+#                 "status": "quarantined", 
+#                 "reason": "no_campaign_tags",
+#                 "details": {
+#                     "found_tags": hashtags,
+#                     "missing": ["#gotmilk", "#milkmob"]
+#                 }
+#             }
+#             st.session_state.quarantined_videos['no_campaign_tags'].append(log_entry)
+#             add_to_logs(log_entry)
+            
+#             st.error("❌ Quarantined: Not a #GotMilk Campaign Video!")
+            
+#             col1, col2, col3 = st.columns(3)
+#             with col1:
+#                 st.metric("Status", "❌ Rejected")
+#             with col2:
+#                 st.metric("Reason", "No Campaign Tags")
+#             with col3:
+#                 st.metric("API Calls Saved", "1")
+            
+#             # Explain what's missing
+#             with st.expander("❓ Why was this video rejected?"):
+#                 st.write("**This video is missing campaign hashtags!**")
+#                 st.write("\nRequired hashtags (must include at least one):")
+#                 st.write("- #gotmilk")
+#                 st.write("- #milkmob")
+#                 st.write(f"\nThis video only has: {', '.join(hashtags)}")
+            
+#             # Show how to participate
+#             st.info("""
+#             💡 **To join the Got Milk campaign:**
+#             1. Post your milk video on social media
+#             2. Include #gotmilk or #milkmob in your caption
+#             3. Show yourself enjoying milk creatively!
+#             """)
+            
+#             return  # STOP HERE - Don't process further
+        
+#         # Campaign video confirmed!
+#         logger.info("Campaign hashtags verified - proceeding with validation")
+#         st.success("✅ Campaign participant detected! Validating milk content...")
+    
+#     # ===== STEP 5: TWELVE LABS PROCESSING BEGINS =====
+#     # Progress tracking
+#     progress = st.progress(0)
+#     status = st.empty()
+    
+#     try:
+#         # Upload video to Twelve Labs
+#         status.text("📤 Uploading video to Twelve Labs...")
+#         progress.progress(20)
+#         logger.info("Uploading to Twelve Labs API")
+        
+#         # Handle both file paths and uploaded files
+#         if isinstance(video_file, str):
+#             # Open file if it's a path
+#             with open(video_file, 'rb') as f:
+#                 task = client.task.create(
+#                     index_id=st.session_state.index_id,
+#                     file=f
+#                 )
+#         else:
+#             # Direct upload
+#             task = client.task.create(
+#                 index_id=st.session_state.index_id,
+#                 file=video_file
+#             )
+            
+            
+        
+#         logger.info(f"Task created: {task.id}")
+#         st.info(f"Task ID: {task.id}")
+#         # ADD HERE:
+#         status.text("✅ Upload complete! Processing video...")
+#         progress.progress(30)
+        
+#         # ===== STEP 6: WAIT FOR VIDEO PROCESSING =====
+#         status.text("🔄 Processing video...")
+#         progress.progress(40)
+        
+#         max_attempts = 30  # 2.5 minutes max
+#         for attempt in range(max_attempts):
+#             task_status = client.task.retrieve(task.id)
+#             logger.info(f"Processing status ({attempt+1}/30): {task_status.status}")
+            
+#             if task_status.status == "ready":
+#                 break
+#             elif task_status.status == "failed":
+#                 logger.error("Video processing failed")
+#                 st.error("❌ Processing failed!")
+#                 return
+                
+#             status.text(f"🔄 Status: {task_status.status} ({attempt+1}/30)")
+#             time.sleep(5)
+        
+#         progress.progress(70)
+        
+#         # ===== STEP 7: MILK DETECTION =====
+#         status.text("🥛 Detecting milk content...")
+#         progress.progress(80)
+        
+#         # Get video ID
+#         video_id = task_status.video_id
+#         logger.info(f"Video ID: {video_id}")
+        
+#         # Initialize detection variables
+#         milk_found = False
+#         confidence = 0.0
+#         logger.info(f"DEBUG: Initialized confidence = {confidence}")
+#         detected_type = "Unknown"
+#         detection_methods = []
+#         analysis_text = ""  # Store the analysis for later use
+        
+#         # Wait for indexing to complete
+#         time.sleep(3)
+        
+#         # ===== STEP 8: TRY PEGASUS ANALYSIS FIRST =====
+#         try:
+#             logger.info("Attempting Pegasus AI analysis")
+            
+#             # ENHANCED PROMPT
+#             analysis_result = client.analyze(
+#                 video_id=video_id,
+#                 prompt="""Analyze this video and answer:
+#                 1. Is there any milk visible in this video? (yes/no)
+#                 2. What type of milk is it? (chocolate, strawberry, regular, none)
+#                 3. What is the person doing? (drinking, pouring, cooking, exercising, dancing, studying, etc.)
+#                 4. Where are they? (kitchen, gym, bedroom, outdoors, classroom, etc.)
+#                 5. What's the mood/style? (funny, serious, energetic, chill, artistic)
+#                 6. How many people are in the video? (solo, duo, group)
+#                 7. What time of day does it appear to be? (morning, afternoon, evening, night)
+#                 8. Any unique activities or props? (skateboard, gaming, music, etc.)
+                
+#                 Provide answers in a clear format.""",
+#                 temperature=0.2
+#             )
+            
+#             # Get the analysis text (handle different attribute names)
+#             if hasattr(analysis_result, 'data'):
+#                 analysis_text = str(analysis_result.data).lower()
+#             elif hasattr(analysis_result, 'content'):
+#                 analysis_text = str(analysis_result.content).lower()
+#             elif hasattr(analysis_result, 'text'):
+#                 analysis_text = str(analysis_result.text).lower()
+#             else:
+#                 analysis_text = str(analysis_result).lower()
+            
+#             logger.info(f"Pegasus result: {analysis_text[:200]}...")
+
+#             # st.session_state.analysis_progress['pegasus'] = True
+#             # st.session_state.analysis_progress['visual'] = True
+#             # st.session_state.analysis_progress['audio'] = True
+#             # st.session_state.analysis_progress['text'] = True
+
+#             status.text("✅ Pegasus complete! Calculating confidence...")
+#             progress.progress(70)
+            
+#             # Extract activity data from the analysis
+#             activity, location, mood = extract_activity_data(analysis_text)
+#             logger.info(f"Detected - Activity: {activity}, Location: {location}, Mood: {mood}")
+
+#             # Assign activity-based mob
+#             activity_mob, mob_description = assign_activity_mob(activity, location, mood)
+#             logger.info(f"Assigned to mob: {activity_mob}")
+#             # ADD THESE TWO LINES:
+#             # st.session_state.analysis_progress['mob'] = True
+#             # show_analysis_progress()  # Refresh the display
+                        
+#             # Display AI analysis
+#             with st.expander("🤖 AI Analysis Result"):
+#                 st.write(analysis_text)
+            
+#             # Parse results
+#             milk_found = "yes" in analysis_text and ("milk" in analysis_text or "dairy" in analysis_text)
+            
+            
+#             if milk_found:
+#                 # Initialize default clip timestamps
+#                 clip_start = 2.5
+#                 clip_end = 6.5
+                
+#                 logger.info(f"DEBUG: Starting clip detection with Generate API")
+                
+#                 try:
+#                     # Use Twelve Labs Gist API to find the best milk moment
+#                     highlight_result = client.gist(  # CHANGED: removed .generate
+#                         video_id=video_id,
+#                         prompt=f"Find the exact moment where milk appears or someone {activity} milk. Return the timestamp.",
+#                         types=["highlight"]
+#                     )
+                    
+#                     logger.info(f"Generate API response: {highlight_result}")
+                    
+#                     # Parse the response - it might be in different formats
+#                     if highlight_result:
+#                         # Check if it's a direct object with start/end
+#                         if hasattr(highlight_result, 'start') and hasattr(highlight_result, 'end'):
+#                             clip_start = float(highlight_result.start)
+#                             clip_end = min(clip_start + 4, float(highlight_result.end))
+#                             logger.info(f"✅ Found highlight with direct attributes: {clip_start}s - {clip_end}s")
+                            
+#                         # Check if it's in a data attribute
+#                         elif hasattr(highlight_result, 'data'):
+#                             data = highlight_result.data
+#                             if isinstance(data, list) and len(data) > 0:
+#                                 highlight = data[0]
+#                                 if hasattr(highlight, 'start'):
+#                                     clip_start = float(highlight.start)
+#                                     clip_end = min(clip_start + 4, float(getattr(highlight, 'end', clip_start + 4)))
+#                                     logger.info(f"✅ Found highlight in data array: {clip_start}s - {clip_end}s")
+                                    
+#                         # Check if it's in a highlights attribute
+#                         elif hasattr(highlight_result, 'highlights'):
+#                             highlights = highlight_result.highlights
+#                             if isinstance(highlights, list) and len(highlights) > 0:
+#                                 highlight = highlights[0]
+#                                 clip_start = float(highlight.get('start', 2.5))
+#                                 clip_end = min(clip_start + 4, float(highlight.get('end', 6.5)))
+#                                 logger.info(f"✅ Found highlight in highlights array: {clip_start}s - {clip_end}s")
+                                
+#                         # Check if the response is text with timestamps
+#                         elif hasattr(highlight_result, 'text') or isinstance(highlight_result, str):
+#                             text = str(highlight_result)
+#                             logger.info(f"Generate returned text: {text}")
+                            
+#                             # Try to extract numbers from text like "at 3.5 seconds"
+#                             import re
+#                             numbers = re.findall(r'(\d+\.?\d*)', text)
+#                             if numbers:
+#                                 clip_start = float(numbers[0])
+#                                 clip_end = clip_start + 4
+#                                 logger.info(f"✅ Extracted timestamp from text: {clip_start}s")
+#                             else:
+#                                 logger.info("⚠️ No timestamps found in text response")
+#                         else:
+#                             logger.info(f"⚠️ Unknown response format: {type(highlight_result)}")
+                            
+#                     else:
+#                         logger.info("⚠️ Generate API returned empty response")
+                        
+#                 except Exception as e:
+#                     logger.warning(f"❌ Generate API error: {str(e)}")
+#                     logger.info(f"Error type: {type(e).__name__}")
+                    
+#                     # Fallback to activity-based smart defaults
+#                     if activity == "drinking":
+#                         clip_start = 3.0
+#                         clip_end = 7.0
+#                         logger.info(f"Using drinking activity defaults: {clip_start}s - {clip_end}s")
+#                     elif activity == "cooking":
+#                         clip_start = 5.0
+#                         clip_end = 9.0
+#                         logger.info(f"Using cooking activity defaults: {clip_start}s - {clip_end}s")
+#                     else:
+#                         logger.info(f"Using general defaults: {clip_start}s - {clip_end}s")
+                
+#                 # Log final clip times
+#                 logger.info(f"📍 Final clip times: {clip_start}s - {clip_end}s")
+                        
+
+#             logger.info(f"Final confidence: {confidence}")
+#             status.text("✅ Confidence calculated! Assigning to mob...")
+#             # Add this debug
+#             logger.info(f"Confidence before final log: {confidence}")
+
+#             # If confidence is 0 at this point, something went wrong
+#             if confidence == 0.0 and milk_found:
+#                 # Get confidence from the main search instead
+#                 try:
+#                     main_search = client.search.query(
+#                         index_id=st.session_state.index_id,
+#                         query_text="milk",
+#                         options=["visual"],
+#                     )
+                    
+#                     for result in main_search.data:
+#                         if result.video_id == video_id:
+#                             confidence = result.score
+#                             logger.info(f"DEBUG: Set confidence from main search fallback = {confidence}")
+#                             break
+#                     if confidence == 0.0:
+#                         logger.info(f"DEBUG: Main search didn't find video, confidence still = {confidence}")
+#                 except:
+#                     logger.info(f"DEBUG: Main search failed, confidence. i removed 85 = {confidence}")
+#                     # confidence = 85.0  # Default fallback
+                    
+#             logger.info(f"Final confidence: {confidence}")
+#             progress.progress(85)
+            
+#             # Determine milk type
+#             if "chocolate" in analysis_text:
+#                 detected_type = "Chocolate"
+#             elif "strawberry" in analysis_text:
+#                 detected_type = "Strawberry"
+#             elif "2%" in analysis_text or "regular" in analysis_text:
+#                 detected_type = "2% Regular"
+#             else:
+#                 detected_type = "Regular"
+            
+#             detection_methods.append("AI Analysis (Pegasus)")
+            
+#         except Exception as e:
+#             logger.warning(f"Pegasus analysis failed: {str(e)}")
+#             st.warning("Primary analysis failed, trying alternative detection...")
+            
+#             # ===== STEP 9: FALLBACK TO MULTI-MODAL SEARCH =====
+#             logger.info("Using multi-modal detection approach")
+            
+#             # We'll do simplified detection here
+#             try:
+#                 # Search for milk in the video
+#                 search_results = client.search.query(
+#                     index_id=st.session_state.index_id,
+#                     query_text="milk dairy bottle carton drinking",
+#                     options=["visual", "audio"],
+#                     threshold="low",
+#                     page_limit=20
+#                 )
+#                 logger.info(f"DEBUG: Processing video_id = {video_id}")
+
+                
+#                 # Check if our video appears in results
+#                 for result in search_results.data:
+#                     logger.info(f"DEBUG: Result {idx} has video_id = {getattr(result, 'video_id', 'NO ID')}")
+#                     if result.video_id == video_id:
+#                         milk_found = True
+#                         confidence = result.score
+#                         detection_methods.append("Multi-modal Search")
+#                         logger.info(f"Found milk content via search: {confidence}%")
+#                         break
+                        
+#             except Exception as e:
+#                 logger.error(f"Search failed: {str(e)}")
+#                 # Check if it's rate limit error
+#                 if "429" in str(e) or "rate limit" in str(e).lower():
+#                     st.error("⚠️ API rate limit reached. Please try again later.")
+#                     return
+        
+#         progress.progress(100)
+        
+#         # ===== STEP 10: DISPLAY RESULTS =====
+#         if milk_found:
+#             logger.info(f"SUCCESS: Milk detected! Type: {detected_type}, Confidence: {confidence:.2f}%")
+            
+#             # Add successful log
+#             log_entry = {
+#                 "timestamp": datetime.now().isoformat(),
+#                 "filename": filename,
+#                 "status": "approved",
+#                 "milk_type": detected_type,
+#                 "confidence": confidence,
+#                 "activity_mob": activity_mob,
+#                 "processing_time": time.time() - start_time
+#             }
+#             add_to_logs(log_entry)
+            
+#             st.success("✅ Milk Content Validated!")
+#             st.balloons()
+
+#             # NEW: Display AI Scene Analysis
+#             st.markdown("### 🤖 AI Scene Analysis")
+#             col1, col2, col3 = st.columns(3)
+
+#             with col1:
+#                 st.metric("Activity", activity.title())
+                
+#             with col2:
+#                 st.metric("Location", location.title())
+                
+#             with col3:
+#                 st.metric("Mood", mood.title())
+            
+#             # Display metrics
+#             col1, col2, col3 = st.columns(3)
+#             with col1:
+#                 st.metric("Milk Type", detected_type)
+#             with col2:
+#                 st.metric("Confidence", f"{confidence:.2f}%")
+#             with col3:
+#                 st.metric("Status", "Approved")
+            
+#             # ===== STEP 11: MOB ASSIGNMENT =====
+#             st.markdown("### 🎯 Mob Assignment")
+
+#             # Show BOTH mob types
+#             col1, col2 = st.columns(2)
+
+#             with col1:
+#                 st.info(f"**Activity Mob:** {activity_mob}")
+#                 st.caption(mob_description)
+                
+#             with col2:
+#                 # Original milk-based mob
+#                 if detected_type == "Chocolate":
+#                     mob_name = "Chocolate Champions 🍫"
+#                 elif detected_type == "Strawberry":
+#                     mob_name = "Berry Squad 🍓"
+#                 else:
+#                     mob_name = "Classic Crew 🥛"
+                
+#                 st.info(f"**Milk Type:** {mob_name}")
+#                 st.caption(f"The {detected_type.lower()} milk lovers")
+            
+#             # Save to session state
+#             st.session_state.processed_videos.append({
+#                 "video_id": video_id,
+#                 "filename": filename,
+#                 "confidence": confidence,
+#                 "milk_type": detected_type,
+#                 "activity_mob": activity_mob,
+#                 "activity_data": {
+#                     "activity": activity,
+#                     "location": location,
+#                     "mood": mood
+#                 },
+#                 "detection_methods": detection_methods,
+#                 "metadata": metadata,
+#                 "mob": mob_name,
+#                 "timestamp": time.time(),
+#                 "clip_start": clip_start,      # ADD THIS LINE
+#                 "clip_end": clip_end           # ADD THIS LINE
+#             })
+#             progress.progress(100)
+#             status.text("✅ All checks complete!")
+#         else:
+#             # QUARANTINE: AI Detection Failed
+#             logger.warning(f"FAILED: No milk detected in {filename}")
+            
+#             # Analyze what was detected
+#             detected_content = "Unknown beverage"
+#             if analysis_text and "water" in analysis_text:
+#                 detected_content = "Water detected instead of milk"
+#             elif analysis_text and ("soda" in analysis_text or "coke" in analysis_text or "cola" in analysis_text):
+#                 detected_content = "Soda/carbonated beverage detected"
+#             elif analysis_text and "juice" in analysis_text:
+#                 detected_content = "Juice detected instead of milk"
+            
+#             log_entry = {
+#                 "timestamp": datetime.now().isoformat(),
+#                 "filename": filename,
+#                 "video_id": video_id,  # ← ADD THIS LINE
+#                 "status": "quarantined",
+#                 "reason": "ai_detection_failed",
+#                 "details": {
+#                     "ai_analysis": detected_content,
+#                     "confidence": 0,
+#                     "processing_time": time.time() - start_time,
+#                     "metadata": metadata
+#                 }
+#             }
+#             st.session_state.quarantined_videos['ai_detection_failed'].append(log_entry)
+#             add_to_logs(log_entry)
+            
+#             st.error("❌ Quarantined: No Milk Content Detected")
+#             st.warning(f"AI Analysis: {detected_content}")
+
+#             logger.info(f"QUARANTINE DEBUG: Added {filename}")
+#             logger.info(f"Session state quarantine count: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
+#             logger.info(f"Quarantine contents: {[v['filename'] for v in st.session_state.quarantined_videos['ai_detection_failed']]}")
+
+#             # ADD THIS DEBUG LINE:
+#             logger.info(f"QUARANTINE DEBUG: Added {filename} to quarantine. Total in ai_detection_failed: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
+#             st.write(f"DEBUG: Quarantine list now has {len(st.session_state.quarantined_videos['ai_detection_failed'])} videos")
+            
+#             with st.expander("💭 Why was this quarantined?"):
+#                 st.write(f"**{detected_content}**")
+#                 st.write("Although this video has campaign hashtags, we couldn't detect actual milk content.")
+#                 st.write("- Milk might not be clearly visible")
+#                 st.write("- Video might contain other beverages")
+#                 st.write("- Try showing milk more prominently")
+        
+#         # ===== STEP 12: DEBUG INFORMATION =====
+#         with st.expander("🔍 Technical Details"):
+#             st.write(f"**Task ID:** {task.id}")
+#             st.write(f"**Video ID:** {video_id}")
+#             st.write(f"**Detection Methods Used:** {', '.join(detection_methods)}")
+#             st.write(f"**Processing Time:** {time.time() - start_time:.1f} seconds")
+
+#         # DEV NOTES 
+#         with st.expander("🔧 AI Analysis Steps - Developer Info"):
+#             st.text(f"""
+#         📤 Video Upload - Complete
+#         ✅ Task ID: {task.id}
+#         ✅ Video ID: {video_id}
+
+#         🧠 Pegasus Analysis - Complete
+#         ✅ Activity: {activity if 'activity' in locals() else 'Failed'}
+#         ✅ Location: {location if 'location' in locals() else 'Failed'}
+#         ✅ Mood: {mood if 'mood' in locals() else 'Failed'}
+
+#         🔍 Detection Results
+#         {'✅' if milk_found else '❌'} Milk Found: {milk_found}
+#         ✅ Milk Type: {detected_type if milk_found else 'None'}
+#         ✅ Confidence: {confidence:.2f}%
+
+#         🎯 Mob Assignment
+#         ✅ Activity Mob: {activity_mob if 'activity_mob' in locals() else 'None'}
+#         ✅ Milk Type Mob: {mob_name if 'mob_name' in locals() else 'None'}
+
+#         ⏱️ Processing Time: {time.time() - start_time:.1f} seconds
+#         """)
+                        
+#     except Exception as e:
+#         logger.error(f"Error processing video: {str(e)}", exc_info=True)
+#         st.error(f"❌ Error: {str(e)}")
+        
+#         # Check for specific errors
+#         if "API key" in str(e):
+#             st.error("Please check your Twelve Labs API key")
+#         elif "rate limit" in str(e):
+#             st.error("API rate limit reached. Please try again later.")
+        
+        
+
+#End New process -------------------------------------------------------------
 
 def process_video(client, video_file, filename=None):
     """
@@ -564,16 +1191,12 @@ def process_video(client, video_file, filename=None):
     4. Detect milk content using Pegasus/multi-modal analysis
     5. If milk found → Assign to appropriate mob
     """
+    logger.info(f"=== PROCESS VIDEO DEBUG ===")
+    logger.info(f"Processing file: {video_file}")
+    logger.info(f"Filename: {filename}")
     
     # Track processing time
     start_time = time.time()
-
-    # ===== STEP 0: tracking =====
-
-
-    # progress = st.progress(0)
-    # status = st.empty()
-    
     
     # ===== STEP 1: SETUP AND INITIALIZATION =====
     if filename is None:
@@ -633,7 +1256,7 @@ def process_video(client, video_file, filename=None):
         with col1:
             st.metric("Likes", f"{metadata.get('likes', 0):,}")
         with col2:
-            st.info(f"**@{metadata['username']}**")
+            st.info(f"**{metadata['username']}**")
             st.caption(metadata['caption'])
             
         # Display hashtags prominently
@@ -649,7 +1272,7 @@ def process_video(client, video_file, filename=None):
         hashtags = metadata.get('hashtags', [])
         has_campaign_tag = '#gotmilk' in hashtags or '#milkmob' in hashtags
 
-        logger.info(f"DEBUG: Found hashtags: {hashtags}")  # Add this
+        logger.info(f"DEBUG: Found hashtags: {hashtags}")
         
         if not has_campaign_tag:
             # NOT A CAMPAIGN VIDEO - QUARANTINE
@@ -725,12 +1348,9 @@ def process_video(client, video_file, filename=None):
                 index_id=st.session_state.index_id,
                 file=video_file
             )
-            
-            
         
         logger.info(f"Task created: {task.id}")
         st.info(f"Task ID: {task.id}")
-        # ADD HERE:
         status.text("✅ Upload complete! Processing video...")
         progress.progress(30)
         
@@ -766,21 +1386,23 @@ def process_video(client, video_file, filename=None):
         # Initialize detection variables
         milk_found = False
         confidence = 0.0
+        logger.info(f"🔍 CONFIDENCE DEBUG: Initialized confidence = {confidence}")
         detected_type = "Unknown"
         detection_methods = []
         analysis_text = ""  # Store the analysis for later use
         
-        # Wait for indexing to complete
-        time.sleep(3)
+        # Wait for SEARCH AI to complete. KEY FOR CONFIDENCE SCORING TO BE SHOW CORRECTLY 
+        time.sleep(15)
         
         # ===== STEP 8: TRY PEGASUS ANALYSIS FIRST =====
         try:
             logger.info("Attempting Pegasus AI analysis")
             
-            # ENHANCED PROMPT
+            #  PROMPT
+            # ENHANCED PROMPT WITH MILK MOMENT DETECTION
             analysis_result = client.analyze(
                 video_id=video_id,
-                prompt="""Analyze this video and answer:
+                prompt="""Analyze this video and answer each question carefully:
                 1. Is there any milk visible in this video? (yes/no)
                 2. What type of milk is it? (chocolate, strawberry, regular, none)
                 3. What is the person doing? (drinking, pouring, cooking, exercising, dancing, studying, etc.)
@@ -789,9 +1411,16 @@ def process_video(client, video_file, filename=None):
                 6. How many people are in the video? (solo, duo, group)
                 7. What time of day does it appear to be? (morning, afternoon, evening, night)
                 8. Any unique activities or props? (skateboard, gaming, music, etc.)
-                
-                Provide answers in a clear format.""",
-                temperature=0.2
+                9. At what timestamp (in seconds) does the person take their first sip or drink of milk?
+
+                MILK MOMENT AUDIO DETECTION - LISTEN CAREFULLY:
+                10. Does ANYONE in the video SAY ANY of these phrases: "got milk", "got chocolate", "got strawberry", "got 2%", or just the word "milk"? Listen to ALL audio carefully. (yes/no)
+                11. If yes to #10, at exactly what timestamp (in seconds) do they FIRST say any milk-related word or phrase?
+                12. If no drinking occurs in #9, at what timestamp is the milk most prominently featured or held up?
+                13. What EXACTLY does the person say about milk? Quote their words if any.
+
+                Listen to the ENTIRE audio track. People often say "got [type] milk" when showing their milk.""",
+                temperature=0.2  # Keep this for consistency!
             )
             
             # Get the analysis text (handle different attribute names)
@@ -804,12 +1433,9 @@ def process_video(client, video_file, filename=None):
             else:
                 analysis_text = str(analysis_result).lower()
             
-            logger.info(f"Pegasus result: {analysis_text[:200]}...")
-
-            # st.session_state.analysis_progress['pegasus'] = True
-            # st.session_state.analysis_progress['visual'] = True
-            # st.session_state.analysis_progress['audio'] = True
-            # st.session_state.analysis_progress['text'] = True
+            # Extract the timestamp
+            
+            logger.info(f"Pegasus result: {analysis_text[:]}...")
 
             status.text("✅ Pegasus complete! Calculating confidence...")
             progress.progress(70)
@@ -818,12 +1444,24 @@ def process_video(client, video_file, filename=None):
             activity, location, mood = extract_activity_data(analysis_text)
             logger.info(f"Detected - Activity: {activity}, Location: {location}, Mood: {mood}")
 
+            # ADD THESE LINES HERE:
+            # Extract milk moment for perfect clipping
+            milk_moment, moment_type = extract_milk_moment(analysis_text)
+            logger.info(f"🎬 Milk moment detected: {milk_moment}s ({moment_type})")
+
+                        # ADD THIS LOGGING RIGHT AFTER:
+            logger.info(f"💾 PREPARING TO SAVE VIDEO DATA:")
+            logger.info(f"  - filename: {filename}")
+            logger.info(f"  - milk_moment: {milk_moment}")
+            logger.info(f"  - moment_type: {moment_type}")
+
             # Assign activity-based mob
             activity_mob, mob_description = assign_activity_mob(activity, location, mood)
             logger.info(f"Assigned to mob: {activity_mob}")
-            # ADD THESE TWO LINES:
-            # st.session_state.analysis_progress['mob'] = True
-            # show_analysis_progress()  # Refresh the display
+
+            # Assign activity-based mob
+            activity_mob, mob_description = assign_activity_mob(activity, location, mood)
+            logger.info(f"Assigned to mob: {activity_mob}")
                         
             # Display AI analysis
             with st.expander("🤖 AI Analysis Result"):
@@ -832,36 +1470,63 @@ def process_video(client, video_file, filename=None):
             # Parse results
             milk_found = "yes" in analysis_text and ("milk" in analysis_text or "dairy" in analysis_text)
             
-            # Get real confidence score from search API
+            # REMOVED ALL CLIP DETECTION CODE - JUST USE SIMPLE DEFAULTS
             if milk_found:
-                # Use search API to get the REAL confidence score
+                # Simple activity-based clip times
+                if activity == "drinking":
+                    clip_start = 3.0
+                    clip_end = 7.0
+                elif activity == "cooking":
+                    clip_start = 5.0
+                    clip_end = 9.0
+                elif activity == "fitness" or activity == "exercising":
+                    clip_start = 8.0
+                    clip_end = 12.0
+                else:
+                    clip_start = 2.5
+                    clip_end = 6.5
+                
+                logger.info(f"📍 Using activity-based clip times for '{activity}': {clip_start}s - {clip_end}s")
+
+            logger.info(f"🔍 CONFIDENCE DEBUG: After Pegasus, confidence still = {confidence}")
+            status.text("✅ Confidence calculated! Assigning to mob...")
+
+            # ===== CONFIDENCE CALCULATION =====
+            if confidence == 0.0 and milk_found:
+                logger.info("🔍 CONFIDENCE DEBUG: Milk found but confidence is 0, trying main search")
+                # Get confidence from the main search
                 try:
-                    search_results = client.search.query(
+                    main_search = client.search.query(
                         index_id=st.session_state.index_id,
-                        query_text="milk dairy bottle drinking",
-                        options=["visual", "audio"],
-                        threshold="low"
+                        query_text="milk",
+                        options=["visual"],
                     )
                     
-                    # Find our video in the results
-                    confidence = 85.0  # Default if not found
-                    for result in search_results.data:
-                        if result.video_id == video_id:
-                            confidence = result.score  # This gives you real confidence!
-                            logger.info(f"Search API confidence: {confidence}")
-                            break
+                    logger.info(f"🔍 CONFIDENCE DEBUG: Main search returned {len(main_search.data)} results")
                     
-                    if confidence == 85.0:
-                        logger.info("Video not found in search, using default confidence")
+                    video_found_in_search = False
+                    for idx, result in enumerate(main_search.data):
+                        if hasattr(result, 'video_id'):
+                            logger.info(f"🔍 CONFIDENCE DEBUG: Result {idx} video_id = {result.video_id}, score = {result.score}")
+                            if result.video_id == video_id:
+                                confidence = result.score
+                                video_found_in_search = True
+                                logger.info(f"🔍 CONFIDENCE DEBUG: ✅ Found our video! Set confidence = {confidence}")
+                                break
+                    
+                    if not video_found_in_search:
+                        logger.warning(f"🔍 CONFIDENCE DEBUG: ⚠️ Video {video_id} not found in search results")
+                        # If Pegasus confirmed milk but search didn't find it, give a conservative score
+                        confidence = 85.0
+                        logger.info(f"🔍 CONFIDENCE DEBUG: Using conservative confidence = {confidence}")
                         
                 except Exception as e:
-                    logger.warning(f"Search failed, using Pegasus confidence: {str(e)}")
-                    confidence = 95.0  # Fallback
-            else:
-                confidence = 0.0
-
-            logger.info(f"Final confidence: {confidence}")
-            status.text("✅ Confidence calculated! Assigning to mob...")
+                    logger.error(f"🔍 CONFIDENCE DEBUG: ❌ Main search failed: {str(e)}")
+                    # If search fails but Pegasus found milk, still give it a score
+                    confidence = 70.0
+                    logger.info(f"🔍 CONFIDENCE DEBUG: Using fallback confidence = {confidence}")
+                    
+            logger.info(f"🔍 CONFIDENCE DEBUG: FINAL confidence = {confidence}")
             progress.progress(85)
             
             # Determine milk type
@@ -883,6 +1548,15 @@ def process_video(client, video_file, filename=None):
             # ===== STEP 9: FALLBACK TO MULTI-MODAL SEARCH =====
             logger.info("Using multi-modal detection approach")
             
+            # Initialize clip times for fallback
+            clip_start = 2.5
+            clip_end = 6.5
+            activity = "general"
+            location = "unknown"
+            mood = "neutral"
+            activity_mob = "Milk Enthusiasts 🥛"
+            mob_description = "General milk lovers"
+            
             # We'll do simplified detection here
             try:
                 # Search for milk in the video
@@ -893,15 +1567,18 @@ def process_video(client, video_file, filename=None):
                     threshold="low",
                     page_limit=20
                 )
+                logger.info(f"🔍 CONFIDENCE DEBUG: Fallback search for video_id = {video_id}")
                 
                 # Check if our video appears in results
-                for result in search_results.data:
-                    if result.video_id == video_id:
-                        milk_found = True
-                        confidence = result.score
-                        detection_methods.append("Multi-modal Search")
-                        logger.info(f"Found milk content via search: {confidence}%")
-                        break
+                for idx, result in enumerate(search_results.data):
+                    if hasattr(result, 'video_id'):
+                        logger.info(f"🔍 CONFIDENCE DEBUG: Result {idx} has video_id = {result.video_id}")
+                        if result.video_id == video_id:
+                            milk_found = True
+                            confidence = result.score
+                            detection_methods.append("Multi-modal Search")
+                            logger.info(f"🔍 CONFIDENCE DEBUG: Found via fallback search, confidence = {confidence}")
+                            break
                         
             except Exception as e:
                 logger.error(f"Search failed: {str(e)}")
@@ -990,8 +1667,27 @@ def process_video(client, video_file, filename=None):
                 "detection_methods": detection_methods,
                 "metadata": metadata,
                 "mob": mob_name,
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "clip_start": clip_start,
+                "clip_end": clip_end,
+                "milk_moment": milk_moment,  # MAKE SURE THIS IS HERE
+                "moment_type": moment_type,   # AND THIS
+                "analysis_text": analysis_text,  # ADD THIS to save the full Pegasus response
+
             })
+
+            # ADD THIS LOGGING RIGHT AFTER THE APPEND:
+            logger.info(f"✅ VIDEO SAVED TO DIRECTORY")
+            logger.info(f"  - Total videos now: {len(st.session_state.processed_videos)}")
+            logger.info(f"  - Last video milk_moment: {st.session_state.processed_videos[-1].get('milk_moment', 'ERROR: NOT SAVED')}")
+            
+            # CONFIDENCE DEBUG SUMMARY
+            with st.expander("🔍 Confidence Debug Info"):
+                st.write(f"**Final Confidence:** {confidence:.2f}%")
+                st.write(f"**Detection Method:** {', '.join(detection_methods)}")
+                st.write(f"**Video Found in Search:** {'Yes' if confidence > 0 else 'No'}")
+                st.write(f"**Milk Confirmed by Pegasus:** {'Yes' if milk_found else 'No'}")
+            
             progress.progress(100)
             status.text("✅ All checks complete!")
         else:
@@ -1010,7 +1706,7 @@ def process_video(client, video_file, filename=None):
             log_entry = {
                 "timestamp": datetime.now().isoformat(),
                 "filename": filename,
-                "video_id": video_id,  # ← ADD THIS LINE
+                "video_id": video_id,
                 "status": "quarantined",
                 "reason": "ai_detection_failed",
                 "details": {
@@ -1028,11 +1724,6 @@ def process_video(client, video_file, filename=None):
 
             logger.info(f"QUARANTINE DEBUG: Added {filename}")
             logger.info(f"Session state quarantine count: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
-            logger.info(f"Quarantine contents: {[v['filename'] for v in st.session_state.quarantined_videos['ai_detection_failed']]}")
-
-            # ADD THIS DEBUG LINE:
-            logger.info(f"QUARANTINE DEBUG: Added {filename} to quarantine. Total in ai_detection_failed: {len(st.session_state.quarantined_videos['ai_detection_failed'])}")
-            st.write(f"DEBUG: Quarantine list now has {len(st.session_state.quarantined_videos['ai_detection_failed'])} videos")
             
             with st.expander("💭 Why was this quarantined?"):
                 st.write(f"**{detected_content}**")
@@ -1047,30 +1738,7 @@ def process_video(client, video_file, filename=None):
             st.write(f"**Video ID:** {video_id}")
             st.write(f"**Detection Methods Used:** {', '.join(detection_methods)}")
             st.write(f"**Processing Time:** {time.time() - start_time:.1f} seconds")
-
-        # DEV NOTES 
-        with st.expander("🔧 AI Analysis Steps - Developer Info"):
-            st.text(f"""
-        📤 Video Upload - Complete
-        ✅ Task ID: {task.id}
-        ✅ Video ID: {video_id}
-
-        🧠 Pegasus Analysis - Complete
-        ✅ Activity: {activity if 'activity' in locals() else 'Failed'}
-        ✅ Location: {location if 'location' in locals() else 'Failed'}
-        ✅ Mood: {mood if 'mood' in locals() else 'Failed'}
-
-        🔍 Detection Results
-        {'✅' if milk_found else '❌'} Milk Found: {milk_found}
-        ✅ Milk Type: {detected_type if milk_found else 'None'}
-        ✅ Confidence: {confidence:.2f}%
-
-        🎯 Mob Assignment
-        ✅ Activity Mob: {activity_mob if 'activity_mob' in locals() else 'None'}
-        ✅ Milk Type Mob: {mob_name if 'mob_name' in locals() else 'None'}
-
-        ⏱️ Processing Time: {time.time() - start_time:.1f} seconds
-        """)
+            st.write(f"**Final Confidence:** {confidence:.2f}%")
                         
     except Exception as e:
         logger.error(f"Error processing video: {str(e)}", exc_info=True)
@@ -1081,14 +1749,91 @@ def process_video(client, video_file, filename=None):
             st.error("Please check your Twelve Labs API key")
         elif "rate limit" in str(e):
             st.error("API rate limit reached. Please try again later.")
-        
-        
 
-#End New process -------------------------------------------------------------
             
 # Add this to your process_video function where it shows "🤖 Running Twelve Labs AI Analysis..."
 
-
+def extract_milk_moment(analysis_text):
+    """
+    Extract the ideal milk moment timestamp from Pegasus analysis
+    Priority: 
+    1. BOTH saying + drinking (ultimate milk moment!)
+    2. "Got milk" or "milk" audio moment
+    3. First sip/drink moment (visual)
+    4. Milk prominently shown (fallback)
+    """
+    try:
+        import re  # Ensure re is imported
+        
+        logger.info("🎬 === MILK MOMENT EXTRACTION START ===")
+        logger.info(f"Analysis text length: {len(analysis_text)} chars")
+        
+        milk_moment = None
+        moment_type = None
+        
+        # Log relevant lines
+        lines = analysis_text.lower().split('\n')
+        for i, line in enumerate(lines):
+            if any(keyword in line for keyword in ['timestamp', 'seconds', 'sip', 'drink', 'say', 'got', 'milk']):
+                logger.info(f"Line {i}: {line.strip()}")
+        
+        # Look for drinking moment first (question 9)
+        # This is working: "9. the person takes their first sip or drink of milk at the timestamp 3."
+        drink_patterns = [
+            r'9\.\s*.*?timestamp\s*(\d+)',  # Matches "at the timestamp 3"
+            r'9\.\s*.*?(\d+)\s*seconds?',
+            r'first sip.*?(\d+)',
+            r'drink.*?at\s*(\d+)'
+        ]
+        
+        for pattern in drink_patterns:
+            match = re.search(pattern, analysis_text.lower())
+            if match:
+                try:
+                    timestamp = float(match.group(1))
+                    if timestamp > 0:
+                        milk_moment = timestamp
+                        moment_type = "visual_drinking"
+                        logger.info(f"🥛 Drinking moment found at: {milk_moment}s")
+                        break
+                except:
+                    logger.warning(f"Failed to parse timestamp from: {match.group(0)}")
+        
+        # Check for audio moment (even if Pegasus says no)
+        # Sometimes Pegasus misses it, so we double-check
+        if "got" in analysis_text.lower() and any(milk_type in analysis_text.lower() for milk_type in ["milk", "chocolate", "strawberry", "2%"]):
+            logger.info("🎤 Found 'got [milk]' pattern in text despite Q10 = no")
+            # Try to find associated timestamp
+            audio_patterns = [
+                r'say.*?got.*?(\d+)',
+                r'got.*?milk.*?(\d+)',
+                r'audio.*?(\d+)'
+            ]
+            for pattern in audio_patterns:
+                match = re.search(pattern, analysis_text.lower())
+                if match:
+                    audio_timestamp = float(match.group(1))
+                    if not milk_moment or moment_type != "visual_drinking":
+                        milk_moment = audio_timestamp
+                        moment_type = "audio_milk_detected"
+                    break
+        
+        # Final fallback
+        if not milk_moment:
+            milk_moment = 3.0  # Safe default
+            moment_type = "default"
+            logger.warning("⚠️ No specific moment found, using default 3.0s")
+        
+        logger.info(f"🎬 === EXTRACTION COMPLETE ===")
+        logger.info(f"Type: {moment_type}")
+        logger.info(f"Moment: {milk_moment}s")
+        
+        return milk_moment, moment_type
+        
+    except Exception as e:
+        logger.error(f"Error in extract_milk_moment: {str(e)}")
+        # Return safe defaults if extraction fails
+        return 3.0, "error_default"
 
 
 def show_dashboard_page():
@@ -1293,12 +2038,17 @@ def show_dashboard_page():
                 
                 st.caption(f"Processing Time: {log.get('processing_time', 'N/A')}")
 
-
+# UPDATED INSTA FEEED------------
 def show_instagram_simulator():
     """Simulate real-time Instagram uploads arriving at the platform"""
     st.title("📱 Instagram Live Feed Simulator")
     st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
     
+    # # Create tabs for Feed and Upload
+    # tab1, tab2 = st.tabs(["📱 Live Feed", "📤 Upload Video"])
+    
+    
+    # LIVE FEED TAB - YOUR EXISTING CODE
     # Get all videos with metadata that haven't been processed yet
     processed_ids = [v['filename'] for v in st.session_state.processed_videos]
     
@@ -1329,10 +2079,6 @@ def show_instagram_simulator():
                         'metadata': metadata,
                         'filename': filename
                     })
-
-
-
-
     
     if not available_videos:
         st.success("🎉 All videos have been processed or quarantined! Check the Dashboard.")
@@ -1414,7 +2160,6 @@ def show_instagram_simulator():
             button_type = "secondary"
         
         # Process button
-        # Process button
         if st.button(button_text, type=button_type, use_container_width=True):
             with st.spinner("🤖 AI validating content..."):
                 # Process the video - it will quarantine if no campaign hashtags
@@ -1461,38 +2206,210 @@ def show_instagram_simulator():
                 for reason, videos in st.session_state.quarantined_videos.items():
                     if videos:
                         st.caption(f"{reason.replace('_', ' ').title()}: {len(videos)}")
+    
+    
+
+# INSTA FEEED -----------
+
+# def show_instagram_simulator():
+#     """Simulate real-time Instagram uploads arriving at the platform"""
+#     st.title("📱 Instagram Live Feed Simulator")
+#     st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
+    
+#     # Get all videos with metadata that haven't been processed yet
+#     processed_ids = [v['filename'] for v in st.session_state.processed_videos]
+    
+#     # CRITICAL: Also check quarantined videos to avoid showing them again
+#     quarantined_ids = []
+#     for category in st.session_state.quarantined_videos.values():
+#         for video in category:
+#             if 'filename' in video:
+#                 quarantined_ids.append(video['filename'])
+    
+#     # Find ALL unprocessed videos with metadata (regardless of hashtags)
+#     available_videos = []
+#     for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
+#         for video_path in glob.glob(pattern):
+#             filename = os.path.basename(video_path)
+            
+#             # Skip if already processed OR quarantined
+#             if filename not in processed_ids and filename not in quarantined_ids:
+#                 # Check if has metadata
+#                 metadata_path = video_path.replace('.mp4', '_metadata.json')
+#                 if os.path.exists(metadata_path):
+#                     with open(metadata_path, 'r') as f:
+#                         metadata = json.load(f)
+                    
+#                     # ADD ALL VIDEOS WITH METADATA (no hashtag filtering here!)
+#                     available_videos.append({
+#                         'path': video_path,
+#                         'metadata': metadata,
+#                         'filename': filename
+#                     })
+
+
+
+
+    
+#     if not available_videos:
+#         st.success("🎉 All videos have been processed or quarantined! Check the Dashboard.")
+        
+#         # Show summary
+#         col1, col2 = st.columns(2)
+#         with col1:
+#             st.metric("Approved", len(st.session_state.processed_videos))
+#         with col2:
+#             total_quarantined = sum(len(videos) for videos in st.session_state.quarantined_videos.values())
+#             st.metric("Quarantined", total_quarantined)
+            
+#         if st.button("🔄 Reset Demo"):
+#             st.session_state.processed_videos = []
+#             st.session_state.quarantined_videos = {
+#                 'missing_metadata': [],
+#                 'no_campaign_tags': [],
+#                 'ai_detection_failed': []
+#             }
+#             st.session_state.processing_logs = []
+#             st.rerun()
+#         return
+    
+#     # Simulate incoming posts
+#     st.markdown("---")
+    
+#     col1, col2, col3 = st.columns([1, 2, 1])
+    
+#     with col2:
+#         # Create Instagram-style post card
+#         next_video = available_videos[0]
+#         metadata = next_video['metadata']
+        
+#         # Post header
+#         st.markdown(f"**{metadata['username']}** • {metadata.get('location', 'Unknown')}")
+#         st.caption(f"{metadata.get('full_name', 'Unknown User')} • {metadata.get('creative_style', 'Content')}")
+        
+#         # Video preview
+#         st.video(next_video['path'])
+        
+#         # Engagement metrics
+#         col_likes, col_views, col_engagement = st.columns(3)
+#         with col_likes:
+#             st.metric("❤️ Likes", f"{metadata.get('likes', 0):,}")
+#         with col_views:
+#             st.metric("👁️ Views", f"{metadata.get('views', 0):,}")
+#         with col_engagement:
+#             st.metric("📈 Engagement", f"{metadata.get('engagement_rate', 0)}%")
+        
+#         # Caption and hashtags
+#         st.markdown("**Caption:**")
+#         st.write(metadata.get('caption', 'No caption'))
+        
+#         # Highlight hashtags based on campaign status
+#         hashtags_html = []
+#         hashtags = metadata.get('hashtags', [])
+#         has_campaign_tag = '#gotmilk' in hashtags or '#milkmob' in hashtags
+        
+#         for tag in hashtags:
+#             if tag in ['#gotmilk', '#milkmob']:
+#                 # Campaign hashtags in green
+#                 hashtags_html.append(f"<span style='color: #00a651; font-weight: bold;'>{tag}</span>")
+#             else:
+#                 # Other hashtags in blue
+#                 hashtags_html.append(f"<span style='color: #1890ff;'>{tag}</span>")
+        
+#         st.markdown(" ".join(hashtags_html), unsafe_allow_html=True)
+        
+#         st.markdown("---")
+        
+#         # Show appropriate notification based on hashtag status
+#         if has_campaign_tag:
+#             st.info("🔔 **New #GotMilk post detected!**")
+#             button_text = "✅ Validate & Add to Campaign"
+#             button_type = "primary"
+#         else:
+#             st.warning("⚠️ **Post detected without campaign hashtags**")
+#             button_text = "🔍 Check Post Anyway"
+#             button_type = "secondary"
+        
+#         # Process button
+#         # Process button
+#         if st.button(button_text, type=button_type, use_container_width=True):
+#             with st.spinner("🤖 AI validating content..."):
+#                 # Process the video - it will quarantine if no campaign hashtags
+#                 client = init_twelve_labs()
+#                 # Pass the PATH, not the opened file!
+#                 process_video(client, next_video['path'], filename=next_video['filename'])
+            
+#             # Only show balloons if it was actually approved
+#             if next_video['filename'] in [v['filename'] for v in st.session_state.processed_videos]:
+#                 st.balloons()
+#                 st.success("✅ Added to campaign!")
+            
+#             time.sleep(2)
+#             st.rerun()
+    
+#     # Show queue in sidebar
+#     with st.sidebar:
+#         st.markdown("### 📥 Incoming Queue")
+#         st.metric("Posts Waiting", len(available_videos))
+        
+#         # Color-code the queue based on hashtag status
+#         if len(available_videos) > 1:
+#             st.markdown("**Next Up:**")
+#             for i, video in enumerate(available_videos[1:4]):  # Show next 3
+#                 video_hashtags = video['metadata'].get('hashtags', [])
+#                 has_tags = '#gotmilk' in video_hashtags or '#milkmob' in video_hashtags
+                
+#                 if has_tags:
+#                     st.success(f"{i+2}. {video['metadata']['username']} ✓")
+#                 else:
+#                     st.warning(f"{i+2}. {video['metadata']['username']} ⚠️")
+        
+#         st.markdown("---")
+#         st.markdown("### ⚡ Live Stats")
+#         st.metric("Approved", len(st.session_state.processed_videos))
+        
+#         # Show quarantine counts
+#         total_quarantined = sum(len(videos) for videos in st.session_state.quarantined_videos.values())
+#         if total_quarantined > 0:
+#             st.metric("Quarantined", total_quarantined)
+            
+#             # Show breakdown
+#             with st.expander("Quarantine Details"):
+#                 for reason, videos in st.session_state.quarantined_videos.items():
+#                     if videos:
+#                         st.caption(f"{reason.replace('_', ' ').title()}: {len(videos)}")
 
 #  updated mob explorer ---------------------------------------------
 
 def show_mob_explorer():
     """AI Scene Intelligence Hub - Showcasing Twelve Labs' unique capabilities"""
-    st.title("🧠 AI Scene Intelligence Hub")
+    st.title(" AI Scene Intelligence Hub")
     st.markdown("**Powered by Twelve Labs Multi-Modal Understanding**")
     
     # Add Architecture Visualization First
     with st.expander("🏗️ **See How Our Multi-Modal Architecture Works**", expanded=True):
-        st.markdown("""
-        ### 🚀 Twelve Labs Multi-Modal Intelligence Pipeline
+        # st.markdown("""
+        # ### 🚀 Twelve Labs Multi-Modal Intelligence Pipeline
         
-        ```mermaid
-        graph LR
-            A[Instagram Post] --> B[Hashtag Check]
-            B --> C[Twelve Labs Upload]
-            C --> D[Pegasus AI Analysis]
-            C --> E[Marengo Search API]
-            D --> F[Scene Understanding<br/>Activity, Location, Mood]
-            E --> G[Confidence Scoring<br/>83-86% Range]
-            F --> H[Behavioral Mob Assignment]
-            G --> H
-            H --> I[Community Building]
-        ```
+        # ```mermaid
+        # graph LR
+        #     A[Instagram Post] --> B[Hashtag Check]
+        #     B --> C[Twelve Labs Upload]
+        #     C --> D[Pegasus AI Analysis]
+        #     C --> E[Marengo Search API]
+        #     D --> F[Scene Understanding<br/>Activity, Location, Mood]
+        #     E --> G[Confidence Scoring<br/>83-86% Range]
+        #     F --> H[Behavioral Mob Assignment]
+        #     G --> H
+        #     H --> I[Community Building]
+        # ```
         
-        **Our Advantages:**
-        1. **Dual AI Models**: Pegasus (context) + Marengo (confidence)
-        2. **Deep Scene Understanding**: Not just object detection
-        3. **Behavioral Clustering**: Activities, not just products
-        4. **Smart Validation**: Multi-modal verification
-        """)
+        # **Our Advantages:**
+        # 1. **Dual AI Models**: Pegasus (context) + Marengo (confidence)
+        # 2. **Deep Scene Understanding**: Not just object detection
+        # 3. **Behavioral Clustering**: Activities, not just products
+        # 4. **Smart Validation**: Multi-modal verification
+        # """)
         
         # Show processing metrics
         col1, col2, col3, col4 = st.columns(4)
@@ -1638,6 +2555,354 @@ def show_mob_explorer():
     with tab4:
         # DIRECTORY VIEW
         show_directory_view()
+
+# new got milk directory
+def show_got_milk_directory():
+    """Show the Got Milk Directory with video clips and intelligence panel"""
+    st.title("📁 Got Milk Directory")
+    st.markdown("Browse the best milk moments from our campaign")
+    
+    if not st.session_state.processed_videos:
+        st.info("No videos in the directory yet. Head to the Instagram Feed to start processing!")
+        return
+    
+    # Create two columns
+    col1, col2 = st.columns([1, 1])
+    
+    # Initialize selected video in session state
+    if 'selected_video_index' not in st.session_state:
+        st.session_state.selected_video_index = 0
+    
+    with col1:
+        st.markdown("### Milk Moments Gallery")
+        st.markdown("*Click any video to view details*")
+        
+        # Create a grid of video thumbnails
+        videos_per_row = 2
+        rows = len(st.session_state.processed_videos) // videos_per_row + 1
+        
+        video_index = 0
+        for row in range(rows):
+            cols = st.columns(videos_per_row)
+            for col_idx in range(videos_per_row):
+                if video_index < len(st.session_state.processed_videos):
+                    with cols[col_idx]:
+                        video = st.session_state.processed_videos[video_index]
+                        
+                        # Create clickable video card
+                        with st.container():
+                            # Show thumbnail placeholder
+                            st.markdown(f"""
+                            <div style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                padding: 10px;
+                                border-radius: 10px;
+                                margin-bottom: 10px;
+                            ">
+                                <div style="
+                                    background: grey;
+                                    padding: 5px;
+                                    border-radius: 5px;
+                                    text-align: center;
+                                ">
+                                    🥛 {video.get('milk_type', 'Milk')}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Video info - FIXED USERNAME DISPLAY
+                            video_metadata = video.get('metadata') or {}
+                            username = video_metadata.get('username', 'Unknown')
+                            # Remove @ if already in username to avoid @@
+                            username_clean = username.lstrip('@')
+                            st.markdown(f"**@{username_clean}**")
+                            
+                            # Show clip timing
+                            clip_start = video.get('clip_start', 0)
+                            clip_end = video.get('clip_end', 5)
+                            # st.caption(f"📹 {clip_end - clip_start:.1f}s clip")
+                            
+                            # Confidence
+                            confidence = video.get('confidence', 85)
+                            st.markdown(f"<small>🎯 {confidence:.1f}%</small>", unsafe_allow_html=True)
+                            
+                            # Select button
+                            if st.button(f"View", key=f"select_{video_index}"):
+                                st.session_state.selected_video_index = video_index
+                                st.rerun()
+                        
+                        video_index += 1
+    
+    with col2:
+        st.markdown("### 🎬 Key Moments Panel")
+        
+        if st.session_state.processed_videos:
+            selected_video = st.session_state.processed_videos[st.session_state.selected_video_index]
+            logger.info(f"🎥 DIRECTORY - SELECTED VIDEO DEBUG:")
+            logger.info(f"  - Index: {st.session_state.selected_video_index}")
+            logger.info(f"  - Filename: {selected_video.get('filename', 'Unknown')}")
+            logger.info(f"  - Milk moment: {selected_video.get('milk_moment', 'NOT FOUND')}")
+            logger.info(f"  - Moment type: {selected_video.get('moment_type', 'NOT FOUND')}")
+            
+            # Video clip section - ENHANCED
+            st.markdown("#### 🎥 Got Milk Moment")
+            # Video clip section - ENHANCED WITH MILK MOMENT
+            milk_moment = selected_video.get('milk_moment', 3.0)  # Get the exact moment
+            moment_type = selected_video.get('moment_type', 'default')
+
+            # Calculate clip window: 2 seconds before, 1.5 seconds after
+            clip_start = max(0, milk_moment - 1.5)  # Don't go negative
+            clip_end = milk_moment + 1.5
+
+            # ADD THIS LOGGING:
+            logger.info(f"📹 VIDEO PLAYBACK CALCULATION:")
+            logger.info(f"  - milk_moment: {milk_moment}")
+            logger.info(f"  - clip_start (moment - 1.5s): {clip_start}")
+            logger.info(f"  - Will start video at: {int(clip_start)}s")
+
+            # Show what type of moment we're displaying
+            moment_emoji = {
+                'audio_gotmilk': '🎤',
+                'visual_drinking': '🥛', 
+                'both_audio_visual': '🎬',
+                'visual_display': '📦',
+                'default': '⏱️'
+            }.get(moment_type, '⏱️')
+
+            # Milk Moment Explanation Box
+            st.markdown("#### 🎯 Milk Moment Analysis")
+
+            # Create an info box with the moment details
+            with st.info(f"{moment_emoji} **{moment_type.replace('_', ' ').title()}** detected at {milk_moment:.1f}s"):
+                st.caption(f"Clip shows 1.5s before → MOMENT → 2s after")
+                
+            # Get the analysis text if available (from metadata)
+            if 'analysis_text' in selected_video:
+                analysis_text = selected_video.get('analysis_text', '')
+                
+                # Extract the specific answer about the milk moment
+                if "9." in analysis_text:
+                    # Find line 9 (drinking moment)
+                    lines = analysis_text.split('\n')
+                    for line in lines:
+                        if line.strip().startswith('9.'):
+                            # st.write(f"**Why this moment:** {line.strip()}")
+                            break
+                
+                if "10." in analysis_text and "yes" in analysis_text.lower():
+                    # Find audio detection
+                    for line in lines:
+                        if line.strip().startswith('13.'):
+                            # st.write(f"**What they said:** {line.strip()}")
+                            break
+                else:
+                    st.caption("Moment detected through AI analysis")
+
+            # st.info(f"{moment_emoji} Showing {moment_type.replace('_', ' ').title()} moment at {milk_moment:.1f}s")
+            
+            # Show timing info
+            # st.info(f"📹 Showing {clip_end - clip_start:.1f}s highlight ({clip_start:.1f}s - {clip_end:.1f}s)")
+            
+            # Try to show actual video if available
+            # Try to find the video file
+            if 'filename' in selected_video:
+                video_filename = selected_video['filename']
+                video_path = None
+                
+                # Try to find the video file
+                import glob
+                possible_patterns = [
+                    f"test_videos/*/{video_filename}",
+                    f"test_videos/2%/{video_filename}",
+                    f"test_videos/choco/{video_filename}",
+                    f"test_videos/straw/{video_filename}"
+                ]
+                
+                for pattern in possible_patterns:
+                    matches = glob.glob(pattern)
+                    if matches:
+                        video_path = matches[0]
+                        logger.info(f"📁 Found video at: {video_path}")
+                        break
+                
+                if video_path and os.path.exists(video_path):
+                    # Show the perfect milk moment clip
+                    logger.info(f"🎬 PLAYING VIDEO:")
+                    logger.info(f"  - Path: {video_path}")
+                    logger.info(f"  - Start time: {int(clip_start)}s")
+
+                    st.info(f"{moment_emoji} Milk moment at {milk_moment:.1f}s - Playing 1.5s before → 2s after")
+    
+                    
+                    # Show timing info
+                    st.info(f"{moment_emoji} Showing {moment_type.replace('_', ' ').title()} moment at {milk_moment:.1f}s")
+                    
+                    # Play video from calculated start time
+                    st.video(video_path, start_time=int(clip_start))
+                    
+                    # Show clip details
+                    st.caption(f"⏱️ Video starts at {clip_start:.1f}s (2s before milk moment)")
+                    st.caption(f"🎯 Milk moment occurs at {milk_moment:.1f}s")
+                else:
+                    logger.warning(f"❌ Video file not found: {video_filename}")
+                    # Show placeholder...
+            else:
+                # Default placeholder
+                st.markdown("""
+                <div style="
+                    background: #f0f0f0;
+                    border-radius: 10px;
+                    padding: 40px;
+                    text-align: center;
+                    color: #666;
+                ">
+                    🎬 Video Clip Player<br>
+                    <small>Preview not available</small>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Creator Information - FIXED USERNAME
+            st.markdown("#### 👤 Creator Profile")
+            selected_metadata = selected_video.get('metadata') or {}
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                # Fix double @ issue
+                username = selected_metadata.get('username', 'Unknown')
+                username_clean = username.lstrip('@')
+                st.metric("Username", f"{username_clean}")
+                st.metric("Location", selected_metadata.get('location', 'Unknown'))
+            with col_b:
+                st.metric("Full Name", selected_metadata.get('full_name', 'Unknown'))
+                st.metric("Creative Style", selected_metadata.get('creative_style', 'Unknown'))
+            
+            # Engagement Metrics
+            st.markdown("#### 📊 Engagement Metrics")
+            col_1, col_2, col_3 = st.columns(3)
+            with col_1:
+                likes = selected_metadata.get('likes', 0)
+                st.metric("Likes", f"{likes:,}")
+            with col_2:
+                views = selected_metadata.get('views', 0)
+                st.metric("Views", f"{views:,}")
+            with col_3:
+                engagement_rate = (likes / max(views, 1)) * 100
+                st.metric("Engagement", f"{engagement_rate:.1f}%")
+            
+            # AI Analysis
+            st.markdown("#### 🤖 AI Analysis")
+            
+            # Detection details
+            with st.expander("Detection Details", expanded=True):
+                st.write(f"**Milk Type:** {selected_video.get('milk_type', 'Unknown')}")
+                st.write(f"**Confidence:** {selected_video.get('confidence', 0):.1f}%")
+                st.write(f"**Mob Assignment:** {selected_video.get('activity_mob', 'Unknown')}")
+
+                # milk moment reasoning display 
+                # ADD MILK MOMENT DETAILS
+                st.write(f"**Milk Moment:** {milk_moment}s ({moment_type.replace('_', ' ').title()})")
+                
+                # Show WHY based on the moment_type
+                if moment_type == "audio_milk_detected" or moment_type == "audio_gotmilk":
+                    st.write("**Why this moment:** Audio detected - person says milk phrase")
+                elif moment_type == "visual_drinking":
+                    st.write("**Why this moment:** Visual - person takes first sip/drink")
+                elif moment_type == "both_audio_visual":
+                    st.write("**Why this moment:** BOTH - person says milk phrase AND drinks")
+                else:
+                    st.write("**Why this moment:** Visual - milk prominently displayed")
+                
+                # ADD MOOD/ACTIVITY REASONING
+                activity_data = selected_video.get('activity_data', {})
+                if activity_data:
+                    st.write("---")  # Separator
+                    st.write(f"**Activity:** {activity_data.get('activity', 'Unknown')}")
+                    st.write(f"**Location:** {activity_data.get('location', 'Unknown')}")
+                    st.write(f"**Mood:** {activity_data.get('mood', 'Unknown')}")
+                    
+                    # Show WHY this mob was assigned
+                    mob = selected_video.get('activity_mob', '')
+                    if 'Gym Warriors' in mob:
+                        st.write("**Mob reasoning:** Fitness activity + gym location = Gym Warriors")
+                    elif 'Comedy Kings' in mob:
+                        st.write("**Mob reasoning:** Funny mood + humor detected = Comedy Kings")
+                    elif 'Creative Collective' in mob:
+                        st.write("**Mob reasoning:** Artistic mood + creative activity = Creative Collective")
+                    elif 'Home Chillers' in mob:
+                        st.write("**Mob reasoning:** Home location + chill mood = Home Chillers")
+                    elif 'Kitchen Creators' in mob:
+                        st.write("**Mob reasoning:** Cooking activity + kitchen location = Kitchen Creators")
+                    else:
+                        st.write("**Mob reasoning:** General milk enthusiasm detected")
+                
+                # Show detection methods if available
+                if 'detection_methods' in selected_video:
+                    st.write("**Detection Methods:**")
+                    for method in selected_video.get('detection_methods', []):
+                        st.write(f"  • {method}")
+            
+            # Scene Analysis - ENHANCED
+            with st.expander("Scene Analysis", expanded=True):
+                activity_data = selected_video.get('activity_data') or {}
+                if activity_data:
+                    st.write(f"**Activity:** {activity_data.get('activity', 'Unknown')}")
+                    st.write(f"**Location:** {activity_data.get('location', 'Unknown')}")
+                    st.write(f"**Mood:** {activity_data.get('mood', 'Unknown')}")
+                else:
+                    st.info("Scene analysis data not available")
+            
+            # Metadata
+            with st.expander("Post Metadata", expanded=False):
+                st.write(f"**Caption:** {selected_metadata.get('caption', 'No caption')}")
+                hashtags = selected_metadata.get('hashtags', [])
+                st.write(f"**Hashtags:** {', '.join(hashtags) if hashtags else 'None'}")
+                st.write(f"**Upload Time:** {selected_metadata.get('timestamp', 'Unknown')}")
+                st.write(f"**Platform:** Instagram")
+                
+                # Show video ID if available
+                if 'video_id' in selected_video:
+                    st.write(f"**Video ID:** `{selected_video['video_id'][:12]}...`")
+            
+            # Download button with hover
+            st.markdown("#### 💾 Export Options")
+            download_html = """
+            <style>
+            .download-btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                text-align: center;
+                cursor: not-allowed;
+                position: relative;
+                display: inline-block;
+                width: 100%;
+                transition: all 0.3s ease;
+            }
+            .download-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            .download-btn:hover::after {
+                content: 'Coming Soon! 🚀';
+                position: absolute;
+                top: -40px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #333;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 5px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+            </style>
+            <div class="download-btn">📥 Download Clip</div>
+            """
+            st.markdown(download_html, unsafe_allow_html=True)
+            
+            # Additional info
+            st.caption("💡 Tip: Process more videos through Instagram Feed for richer metadata")
 
 
 def show_tech_showcase():
