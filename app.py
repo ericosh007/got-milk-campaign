@@ -2573,41 +2573,41 @@ def show_mob_explorer():
     st.title(" AI Scene Intelligence Hub")
     st.markdown("**Powered by Twelve Labs Multi-Modal Understanding**")
     
-    # Add Architecture Visualization First
-    with st.expander("🏗️ **See How Our Multi-Modal Architecture Works**", expanded=True):
-        # st.markdown("""
-        # ### 🚀 Twelve Labs Multi-Modal Intelligence Pipeline
+    # # Add Architecture Visualization First
+    # with st.expander("🏗️ **See How Our Multi-Modal Architecture Works**", expanded=True):
+    #     # st.markdown("""
+    #     # ### 🚀 Twelve Labs Multi-Modal Intelligence Pipeline
         
-        # ```mermaid
-        # graph LR
-        #     A[Instagram Post] --> B[Hashtag Check]
-        #     B --> C[Twelve Labs Upload]
-        #     C --> D[Pegasus AI Analysis]
-        #     C --> E[Marengo Search API]
-        #     D --> F[Scene Understanding<br/>Activity, Location, Mood]
-        #     E --> G[Confidence Scoring<br/>83-86% Range]
-        #     F --> H[Behavioral Mob Assignment]
-        #     G --> H
-        #     H --> I[Community Building]
-        # ```
+    #     # ```mermaid
+    #     # graph LR
+    #     #     A[Instagram Post] --> B[Hashtag Check]
+    #     #     B --> C[Twelve Labs Upload]
+    #     #     C --> D[Pegasus AI Analysis]
+    #     #     C --> E[Marengo Search API]
+    #     #     D --> F[Scene Understanding<br/>Activity, Location, Mood]
+    #     #     E --> G[Confidence Scoring<br/>83-86% Range]
+    #     #     F --> H[Behavioral Mob Assignment]
+    #     #     G --> H
+    #     #     H --> I[Community Building]
+    #     # ```
         
-        # **Our Advantages:**
-        # 1. **Dual AI Models**: Pegasus (context) + Marengo (confidence)
-        # 2. **Deep Scene Understanding**: Not just object detection
-        # 3. **Behavioral Clustering**: Activities, not just products
-        # 4. **Smart Validation**: Multi-modal verification
-        # """)
+    #     # **Our Advantages:**
+    #     # 1. **Dual AI Models**: Pegasus (context) + Marengo (confidence)
+    #     # 2. **Deep Scene Understanding**: Not just object detection
+    #     # 3. **Behavioral Clustering**: Activities, not just products
+    #     # 4. **Smart Validation**: Multi-modal verification
+    #     # """)
         
-        # Show processing metrics
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("AI Models Used", "2", "Pegasus + Marengo")
-        with col2:
-            st.metric("Data Points Extracted", "8+", "Per Video")
-        with col3:
-            st.metric("Confidence Range", "83-86%", "Real Scores")
-        with col4:
-            st.metric("Processing Time", "30-90s", "Per Video")
+    #     # Show processing metrics
+    #     col1, col2, col3, col4 = st.columns(4)
+    #     with col1:
+    #         st.metric("AI Models Used", "2", "Pegasus + Marengo")
+    #     with col2:
+    #         st.metric("Data Points Extracted", "8+", "Per Video")
+    #     with col3:
+    #         st.metric("Confidence Range", "83-86%", "Real Scores")
+    #     with col4:
+    #         st.metric("Processing Time", "30-90s", "Per Video")
     
     st.markdown("---")
     
@@ -3323,23 +3323,28 @@ def show_tech_showcase():
     
     with code_tab1:
         st.code("""
-# Pegasus understands the WHOLE scene, not just objects
-result = client.analyze(
+# Pegasus understands the WHOLE scene with detailed prompting
+analysis_result = client.analyze(
     video_id=video_id,
-    prompts=[
-        "What activity is the person doing?",
-        "Where is this taking place?", 
-        "What's the mood or style?",
-        "How many people are present?"
-    ]
+    prompt=\"""Analyze this video and tell me:
+    1. Is there any milk visible? What type?
+    2. What is the person doing? (drinking, pouring, cooking, exercising, dancing, studying, etc.)
+    3. When does the person first interact with milk? (timestamp)
+    4. Where are they? (kitchen, gym, bedroom, outdoors, classroom, etc.)
+    5. What's the mood/style? (funny, serious, energetic, chill, artistic)
+    6. How many people are in the video? (solo, duo, group)
+    7. What time of day does it appear to be? (morning, afternoon, evening, night)
+    8. Any unique activities or props? (skateboard, gaming, music, etc.)
+    9. Is this a parody or serious content?
+    10. What happens before and after the milk consumption?
+    
+    Provide detailed answers in a clear format.\"""
 )
 
-# Returns rich context like:
-# "A energetic woman is doing yoga in a bright home studio,
-#  creating a calm but focused atmosphere while drinking 
-#  chocolate milk as a post-workout recovery drink"
-        """, language="python")
-    
+# Returns incredibly rich context that enables behavioral understanding
+# Example: "Person flexing muscles in gym at 2pm, drinks chocolate milk 
+# at 5 seconds as post-workout recovery, energetic mood, solo video"
+    """, language="python")
     with code_tab2:
         st.code("""
 # Multi-modal search across visual, audio, and text
@@ -3378,49 +3383,98 @@ elif location == "kitchen" and activity == "cooking":
     
     with cost_col1:
         st.markdown("""
-        ### 📉 Cost Savings
-        - **33% fewer API calls** via smart filtering
-        - **No manual review** needed (100% accuracy)
-        - **Instant mob assignment** (no human tagging)
-        - **Automated virality prediction**
+        ### 📉 Efficiency Gains
         
-        **Monthly savings: ~$15,000** vs manual moderation
+        - **3-tier quarantine** prevents bad content
+        - **Zero false positives** in testing
+        - **84-86% confidence scores** from Search API
+        
+        **Processing: ~90 seconds per video**
         """)
-    
+
     with cost_col2:
         st.markdown("""
-        ### 📈 Value Creation  
-        - **10x faster** content processing
-        - **Rich behavioral insights** impossible manually
-        - **Predictive analytics** for viral content
-        - **Community building** automation
+        ### 📈 Capabilities  
+        - **Behavioral mob assignment** (5 activity types)
+        - **Multi-modal detection** (visual + audio + text)
+        - **Metadata extraction** for social context
         
-        **Estimated campaign lift: +45%** engagement
+        
+        **Scale: ~40 videos/hour with current setup**
+        """)
+
+        # Semantic Intelligence Section
+    st.markdown("---")
+    st.markdown("## 🧠 Semantic Intelligence: Beyond Object Detection")
+    st.info("This rich contextual understanding enables behavioral mob assignment and proves applicability to ANY vertical")
+    
+    sem_col1, sem_col2, sem_col3 = st.columns(3)
+    
+    with sem_col1:
+        st.markdown("### 📊 What We Detect")
+        st.code("""
+Activity: fitness, dancing, cooking
+Location: gym, kitchen, studio  
+Mood: energetic, funny, chill
+Time: daytime, morning
+People: solo, group
+Props: weights, mustache
+Context: post-workout, comedy
+        """, language="text")
+    
+    with sem_col2:
+        st.markdown("### 🎯 Behavioral Insights")
+        st.code("""
+"flexing muscles" → Gym Warriors
+"comedy skit" → Comedy Kings
+"morning routine" → Home Chillers
+"creative setup" → Creative Collective
+"cooking prep" → Kitchen Creators
+        """, language="text")
+    
+    with sem_col3:
+        st.markdown("### 🚀 Other Verticals")
+        st.markdown("""
+        **Same AI, New Campaigns:**
+        - 🏃 **#GotGains** - Fitness form
+        - 👗 **#GotStyle** - Outfit detection
+        - 🍳 **#GotFlavor** - Recipe steps
+        - 🎮 **#GotGame** - Gaming moments
+        - ☕ **#GotCoffee** - Morning rituals
         """)
     
+    st.success("💡 **Key Insight**: We're not detecting objects - we're understanding human behavior and context!")
+    # ========= END OF NEW SECTION =========
+
+    
     # Call to action
+    
     st.markdown("---")
     st.markdown("""
     <div class="tech-header">
-        
+        <h2>🚀 Ready to Transform Your Campaign?</h2>
+        <p style="font-size: 1.2em; margin-top: 1rem;">
+            From detecting milk to understanding human behavior - Twelve Labs enables campaigns that truly connect with your audience.
+        </p>
+        <p style="font-size: 1.1em; margin-top: 2rem;">
+            <strong> 🥛 GOT MILK? </strong><br>
+            - **See it in action**: Try the Instagram Feed dem
+            - **Explore the data**: Check out Mob Explorer
+            - **Get the code**: Everything's on GitHub
+            
+            Built with ❤️ using Twelve Labs' video understanding platform.
     </div>
     """, unsafe_allow_html=True)
+
+    # Add contact/next steps
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.markdown("""
+        
+        
+        """)
     
-    # Easter egg for judges
-    with st.expander("🎮 Secret Developer Stats"):
-        st.json({
-            "total_api_calls": 127,
-            "videos_processed": 15,
-            "false_positives": 0,
-            "false_negatives": 0,
-            "avg_confidence": 84.7,
-            "mobs_created": 5,
-            "cookies_consumed": 47,
-            "energy_drinks": 12,
-            "hours_coding": 72,
-            "bugs_squashed": 183,
-            "times_said_'this_is_sick'": 2947
-        })
+
 
 
 # directory view-=----------------------
