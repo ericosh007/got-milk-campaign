@@ -1,11 +1,18 @@
-# Videos and Data
-data/
-test_videos/
-test_videos_metadata/
+# Videos - Exclude all video files but keep metadata
 *.mp4
 *.mov
 *.avi
 *.mkv
+*.webm
+*.flv
+*.wmv
+
+# Keep the test_videos folder structure and metadata files
+# test_videos/  # COMMENTED OUT - we want to track this folder
+# test_videos_metadata/  # COMMENTED OUT if you have this
+
+# Zip files (these contain videos)
+*.zip
 
 # Logs
 logs/
@@ -18,21 +25,61 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+*.py[cod]
+*$py.class
 
-# Environment
-.env
+# Virtual Environment
 venv/
 env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # Test outputs
 *.csv
@@ -42,11 +89,14 @@ campaign_videos_to_process_*.json
 # Temporary files
 *.tmp
 *.bak
+*.cache
+*.temp
 
-# Jupyter
-*.ipynb_checkpoints
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# Package files
-*.egg-info/
-dist/
-build/
+# Secrets and credentials
+credentials.json
+secrets.json
