@@ -14,6 +14,19 @@
 
 ---
 
+## 📋 Table of Contents
+- [Quick Start](#-quick-start-under-2-minutes)
+- [Features](#-what-makes-this-special)
+- [Technical Architecture](#-technical-architecture)
+- [Project Structure](#-project-structure)
+- [Using the App](#-using-the-app)
+- [How the AI Works](#-how-the-ai-works)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [About the Developer](#-about-the-developer)
+
+---
+
 ## 🚀 Quick Start (Under 2 Minutes!)
 
 ```bash
