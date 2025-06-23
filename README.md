@@ -227,7 +227,9 @@ got-milk-campaign/
 # 3. Text Detection
 "text 'milk' OR text 'got milk' OR text '#gotmilk'"
 
-# Confidence = 2/3 signals must be positive
+# Confidence score comes directly from Twelve Labs Search API
+# Typical range: 83-86% for genuine milk content
+
 ```
 
 ### Behavioral Analysis
@@ -255,6 +257,12 @@ The AI doesn't just detect milk - it understands context:
 **"Processing Takes Forever"**
 - Normal processing time: 80-120 seconds per video
 - This is Twelve Labs doing deep AI analysis, not a bug!
+
+**"Low Confidence Scores / Search Not Working Properly"** ⚠️
+- **Check your Twelve Labs storage!** If your account storage is full, the Search API may not return results properly
+- This can cause confidence scores to be 0 or much lower than expected (should be 83-86%)
+- Solution: Delete old indexes/videos in your [Twelve Labs Console](https://console.twelvelabs.io)
+- Free tier storage limit can fill up quickly with testing
 
 ---
 
