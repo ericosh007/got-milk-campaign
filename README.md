@@ -260,9 +260,11 @@ The AI doesn't just detect milk - it understands context:
 
 **"Low Confidence Scores / Search Not Working Properly"** ⚠️
 - **Check your Twelve Labs storage!** If your account storage is full, the Search API may not return results properly
-- This can cause confidence scores to be 0 or much lower than expected (should be 83-86%)
+- When search fails, the app defaults to 85% confidence (you'll see this in the final result)
+- Console logs will show confidence calculations during processing, but the final displayed score may be the 85% default
 - Solution: Delete old indexes/videos in your [Twelve Labs Console](https://console.twelvelabs.io)
 - Free tier storage limit can fill up quickly with testing
+- To verify: Check console logs - if search returns no results but Pegasus detects milk, you're likely hitting storage limits
 
 ---
 
