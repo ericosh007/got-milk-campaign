@@ -456,7 +456,7 @@ def init_session_state():
         st.session_state.processed_videos = []
     
     if 'current_page' not in st.session_state:
-        st.session_state.current_page = "Home"
+        st.session_state.current_page = "Tech"
 
     if 'quarantined_videos' not in st.session_state:
         st.session_state.quarantined_videos = {
@@ -535,36 +535,34 @@ def main():
     
     # Sidebar navigation
     with st.sidebar:
-        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Milk_glass.svg/150px-Milk_glass.svg.png")
+        # st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Milk_glass.svg/150px-Milk_glass.svg.png")
         st.title("Got Milk? 🥛")
         st.markdown("---")
         
-        # Navigation menu
         pages = {
-            "🚀 Tech Showcase": "Tech",
-            "🏠 API Details": "API",
-            "⚙️ Setup Index": "Setup",
-            "📱 Social Feed Simulator": "Social",  # NEW!
-            "🎬 Upload Video No MetaData": "Upload",
-            "🌟 Mob Explorer": "Mobs",        # NEW!
-            "📊 Dashboard": "Dashboard", 
-            "📁 Got Milk Directory" : "Directory"
-             # ADD THIS
-        }
-        
-        for label, page in pages.items():
-            if st.button(label, use_container_width=True):
+                "🚀 Tech Showcase": ("Tech", "View technical architecture and capabilities"),
+                "💻 Setup the App": ("API", "Install & run locally"),
+                "⚙️ Setup Index": ("Setup", "Configure your Twelve Labs index"),
+                "📱 Social Feed Simulator": ("Social", "Simulate real-time social media validation"),
+                "🎬 Upload Video No MetaData": ("Upload", "Upload videos without social metadata"),
+                "🌟 Mob Explorer": ("Mobs", "Explore creator communities"),
+                "📊 Dashboard": ("Dashboard", "View analytics and quarantine zone"),
+                "📁 Got Milk Directory": ("Directory", "Videos with caputured moments")
+            }
+
+        for label, (page, tooltip) in pages.items():
+            if st.button(label, use_container_width=True, help=tooltip):
                 st.session_state.current_page = page
                 logger.info(f"Navigating to {page} page")
-        
+
         # Add usage check button
         st.markdown("---")
-        if st.button("📈 Check Usage", use_container_width=True):
+        if st.button("📈 Check Usage", use_container_width=True, help="Check your Twelve Labs API usage and credits"):
             check_usage(client)
     
     # Display current page
     if st.session_state.current_page == "API":
-        show_home_page()
+        show_setupapp_details()
     elif st.session_state.current_page == "Setup":
         show_setup_page(client)
     elif st.session_state.current_page == "Upload":
@@ -601,63 +599,96 @@ def check_usage(client):
         logger.error(f"Could not fetch usage: {str(e)}")
         st.error(f"Could not fetch usage: {str(e)}")
 
-def show_home_page():
-    """Display the home page"""
-    logger.info("Displaying home page")
-    st.title("🥛 Got Milk? Campaign Manager")
-    st.markdown("### Welcome to the AI-Powered Milk Detection System!")
+def show_setupapp_details():
+    """Show API integration details and setup instructions"""
+    st.title("💻 Setup the App")
     
-    # Status cards
+    # Keep the existing API connection status at the top
+    st.info("🔗 **API Status**: Connected to Twelve Labs API")
+    st.success(f"✅ **Index ID**: `{st.session_state.get('index_id', 'Not configured')}`")
+    
+    # Existing API integration details
+    st.markdown("### 🔧 Twelve Labs Integration")
+    
     col1, col2, col3 = st.columns(3)
-    
     with col1:
-        st.metric(
-            "API Status", 
-            "✅ Connected" if init_twelve_labs() else "❌ Not Connected"
-        )
-    
+        st.metric("API Version", "v1.3")
     with col2:
-        st.metric(
-            "Index Status",
-            "✅ Ready" if st.session_state.index_id else "❌ Not Created"
-        )
-    
+        st.metric("Models", "Pegasus 1.1 + Marengo 2.7")
     with col3:
-        st.metric(
-            "Videos Processed",
-            len(st.session_state.processed_videos)
-        )
+        st.metric("Processing Time", "80-120s/video")
     
     st.markdown("---")
     
-    # Instructions
-    st.markdown("""
-    ### 🚀 Quick Start Guide
+    # NEW: Setup instructions
+    st.markdown("## 🚀 Run This App Locally")
     
-    1. **Setup Index** - Create your campaign index to store videos
-    2. **Upload Videos** - Upload milk videos for validation
-    3. **View Dashboard** - See analytics and results
+    # GitHub section
+    st.markdown("### 📦 Step 1: Clone the Repository")
     
-    ### 🎯 How It Works
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.code("git clone https://github.com/YOUR_USERNAME/got-milk-campaign.git", language="bash")
+    with col2:
+        st.link_button("🔗 GitHub", "https://github.com/YOUR_USERNAME/got-milk-campaign", type="primary")
     
-    This app uses Twelve Labs AI to:
-    - **Detect** milk in videos (visual + audio + text)
-    - **Identify** milk types (chocolate, strawberry, regular)
-    - **Validate** "Got Milk?" campaign content
-    - **Score** confidence levels
+    # Quick setup
+    st.markdown("### ⚡ Step 2: Quick Setup")
     
-    ### 📁 Test Videos Available
-    You have **12 test videos** ready in your test_videos folder:
-    - 4 Chocolate Milk videos 🍫
-    - 4 Regular (2%) Milk videos 🥛
-    - 4 Strawberry Milk videos 🍓
+    with st.expander("📋 Installation Commands", expanded=True):
+        st.code("""
+# Navigate to project
+cd got-milk-campaign
+
+# Create virtual environment
+python -m venv venv
+
+# Activate (Mac/Linux)
+source venv/bin/activate
+
+# Activate (Windows)
+venv\\Scripts\\activate
+
+# Install dependencies
+pip install -r requirements.txt
+        """, language="bash")
     
-    ### 🔍 Detection Methods
-    - **Audio**: Detects "Got Milk?" phrases
-    - **Visual**: Identifies milk containers and liquid
-    - **Text**: Reads labels and on-screen text
-    - **Multi-modal**: Combines all methods for accuracy
-    """)
+    # Configuration
+    st.markdown("### 🔑 Step 3: Add Your API Keys")
+    
+    st.code("""
+# Create .env file with:
+TWELVE_LABS_API_KEY=tlk_YOUR_KEY_HERE
+CAMPAIGN_INDEX_ID=YOUR_INDEX_ID
+    """, language="bash")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.link_button("Get API Key", "https://playground.twelvelabs.io", type="secondary")
+    with col2:
+        st.info("Free tier: 600 mins/month")
+    
+    # Run
+    st.markdown("### 🎯 Step 4: Launch")
+    
+    st.code("python -m streamlit run app.py", language="bash")
+    
+    st.success("✨ App opens at http://localhost:8501")
+    
+    # Keep existing technical details
+    with st.expander("🔧 Technical Details"):
+        st.markdown("""
+        **Key Features:**
+        - Multi-modal detection (visual + audio + text)
+        - Milk moment extraction with timestamps
+        - Activity-based mob assignment
+        - Three-tier quarantine system
+        
+        **Requirements:**
+        - Python 3.11+
+        - 4GB RAM
+        - Stable internet connection
+        """)
 
 def show_setup_page(client):
     """Display the setup page"""
@@ -2380,7 +2411,7 @@ def show_dashboard_page():
 # UPDATED INSTA FEEED------------
 def show_instagram_simulator():
     """Simulate real-time Instagram uploads arriving at the platform"""
-    st.title("📱 Instagram Live Feed Simulator")
+    st.title("📱 Social Live Feed Simulator")
     st.markdown("### Watch as creators post to #GotMilk campaign in real-time!")
     
     # # Create tabs for Feed and Upload
@@ -2400,8 +2431,8 @@ def show_instagram_simulator():
     
     # Find ALL unprocessed videos with metadata (regardless of hashtags)
     available_videos = []
-    # "test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"
-    for pattern in ["test_videos/test/*.mp4",]:
+    # "test_videos/test/*.mp4",
+    for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
         for video_path in glob.glob(pattern):
             filename = os.path.basename(video_path)
             
@@ -3296,8 +3327,6 @@ def show_tech_showcase():
     st.markdown("""
     <div class="tech-header">
         <h1>🚀 Twelve Labs Technology Showcase</h1>
-        <h3>The AI That Actually Understands Video</h3>
-        <p>Not just object detection - full scene comprehension</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -3557,9 +3586,7 @@ elif location == "kitchen" and activity == "cooking":
     st.markdown("---")
     st.markdown("""
     <div class="tech-header">
-        <h2>🎯 Ready to Experience The Future?</h2>
-        <p>This isn't just video processing. It's video UNDERSTANDING.</p>
-        <h3>Try it yourself in the Instagram Simulator →</h3>
+        
     </div>
     """, unsafe_allow_html=True)
     
