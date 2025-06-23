@@ -49,6 +49,7 @@ pip install -r requirements.txt
 # 5. Set up your API key (get one free at https://playground.twelvelabs.io)
 echo "TWELVE_LABS_API_KEY=tlk_YOUR_KEY_HERE" > .env
 echo "CAMPAIGN_INDEX_ID=YOUR_INDEX_ID" >> .env
+# Setup index on streamlit app! Click the page "Setup Index"
 
 # 6. Launch the app!
 python -m streamlit run app.py

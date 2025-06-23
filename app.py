@@ -1554,7 +1554,7 @@ def process_video(client, video_file, filename=None):
         analysis_text = ""  # Store the analysis for later use
         
         # Wait for SEARCH AI to complete. KEY FOR CONFIDENCE SCORING TO BE SHOW CORRECTLY 
-        time.sleep(15)
+        time.sleep(10)
         
         # ===== STEP 8: TRY PEGASUS ANALYSIS FIRST =====
         try:
@@ -2247,7 +2247,7 @@ def show_instagram_simulator():
     
     # Find ALL unprocessed videos with metadata (regardless of hashtags)
     available_videos = []
-    # "test_videos/test/*.mp4",
+    # ,
     for pattern in ["test_videos/2%/*.mp4", "test_videos/choco/*.mp4", "test_videos/straw/*.mp4", "test_videos/EdgeTests/real vids META/*.mp4"]:
         for video_path in glob.glob(pattern):
             filename = os.path.basename(video_path)
@@ -2359,7 +2359,7 @@ def show_instagram_simulator():
                 st.balloons()
                 st.success("✅ Added to campaign!")
             
-            time.sleep(2)
+            time.sleep(10)
             st.rerun()
     
     # Show queue in sidebar

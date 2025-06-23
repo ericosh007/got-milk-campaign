@@ -7,6 +7,9 @@
 *.flv
 *.wmv
 
+# EXCEPTION: Allow all files in test_videos folder
+!test_videos/**
+
 # Keep the test_videos folder structure and metadata files
 # test_videos/  # COMMENTED OUT - we want to track this folder
 # test_videos_metadata/  # COMMENTED OUT if you have this
@@ -100,3 +103,5 @@ campaign_videos_to_process_*.json
 # Secrets and credentials
 credentials.json
 secrets.json
+
+Source of Truth/
