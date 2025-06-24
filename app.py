@@ -151,7 +151,7 @@ def display_mob_gallery():
                 ### {name}
                 *{desc}*
                 
-                **📊 Videos: {count}** | **📈 Trending: {trend}**
+                **📊 Videos: {count}**
                 """)
             st.markdown("")  # Add spacing between cards
 
